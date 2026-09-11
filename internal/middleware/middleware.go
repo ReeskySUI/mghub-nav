@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	SessionCookie = "mghub_session"
+	SessionCookie = "portal_session"
 	CtxUserKey    = "current_user"
 	CtxSiteKey    = "current_site"
 )
@@ -76,7 +76,7 @@ func SuperAdminRequired() gin.HandlerFunc {
 }
 
 // HostRouter 基于 Host 头的站点路由中间件
-// 用于区分首页域(mghub.top)和导航页域(nav.mghub.top)
+// 用于区分首页域和导航页域
 func HostRouter(homeHost, navHost string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		host := c.Request.Host

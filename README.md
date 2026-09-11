@@ -1,16 +1,16 @@
-# MGHUB Nav - 社群云服务导航与首页
+# Self-Hosted Portal - 自托管导航与首页系统
 
-MGHUB 自托管小社群云服务的统一入口，包含公网首页和成员导航页，基于 Go + Gin + SQLite 构建，单二进制部署。
+一个轻量级的自托管导航与首页系统，包含公网首页和成员导航页，基于 Go + Gin + SQLite 构建，单二进制部署。适用于个人/小团队的自托管服务统一入口。
 
 ## 功能特性
 
-### 首页（mghub.top）
+### 首页（公网可访问）
 - 展示项目愿景与设计理念（内容可后台配置）
 - 跳转 Wiki 和导航页的按钮（链接可后台配置）
 - 公网可访问，无需登录
 - 支持浅色/深色主题，可手动切换或跟随系统
 
-### 导航页（nav.mghub.top）
+### 导航页（需登录）
 - 用户登录认证（账号密码 + bcrypt，含登录失败锁定）
 - 按用户角色显示导航项（普通成员 / 管理员 / 超级管理员）
 - 按用户分类权限过滤导航项（可为每个用户指定可见分类）
@@ -68,23 +68,23 @@ git clone https://github.com/ReeskySUI/mghub-nav.git
 cd mghub-nav
 
 # Windows 本地编译
-CGO_ENABLED=0 go build -o mghub-portal.exe .
+CGO_ENABLED=0 go build -o portal.exe .
 
 # Linux 交叉编译（部署到 VPS）
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o mghub-portal .
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o portal .
 
 # macOS 交叉编译
-CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o mghub-portal-darwin .
+CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o portal-darwin .
 ```
 
 ### 运行
 
 ```bash
 # 首次运行会自动创建数据库和默认超级管理员
-./mghub-portal
+./portal
 
 # 指定配置文件
-./mghub-portal /path/to/config.yaml
+./portal /path/to/config.yaml
 ```
 
 默认超级管理员：
@@ -95,16 +95,18 @@ CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o mghub-portal-darwin .
 
 ### 本地测试
 
-修改 hosts 文件添加：
+修改 hosts 文件添加（将 example.com 替换为你的域名）：
 ```
-127.0.0.1 mghub.top
-127.0.0.1 nav.mghub.top
+127.0.0.1 example.com
+127.0.0.1 nav.example.com
 ```
 
 然后访问：
-- 首页：http://mghub.top:8080
-- 导航页：http://nav.mghub.top:8080
-- 管理后台：http://nav.mghub.top:8080/admin
+- 首页：http://example.com:8080
+- 导航页：http://nav.example.com:8080
+- 管理后台：http://nav.example.com:8080/admin
+
+> 本地开发时，直接访问 http://localhost:8080 会默认路由到导航页域。
 
 ## 配置文件（config.yaml）
 
@@ -112,19 +114,19 @@ CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o mghub-portal-darwin .
 server:
   port: 8080
   # 首页域名（用于 Host 路由区分）
-  home_host: "mghub.top"
+  home_host: "example.com"
   # 导航页域名
-  nav_host: "nav.mghub.top"
+  nav_host: "nav.example.com"
   # 运行模式：debug / release
   mode: "release"
 
 database:
   # SQLite 数据库文件路径
-  path: "./data/mghub.db"
+  path: "./data/portal.db"
 
 auth:
   # Session 密钥（生产环境请修改）
-  session_secret: "mghub-portal-change-me-in-production"
+  session_secret: "portal-change-me-in-production"
   # Session 过期时间（小时）
   session_max_age: 168
   # 登录失败锁定阈值
@@ -146,54 +148,54 @@ upload:
   max_size_mb: 2
 
 site:
-  title: "MGHUB"
-  subtitle: "➖实验室"
-  # 首页愿景描述（从 wiki 01-vision.md 精简）
+  title: "My Portal"
+  subtitle: "自托管导航中心"
+  # 首页愿景描述
   vision:
     - "以极低成本获得稳定、可控、可自托管的数字服务"
     - "成员共享硬件、带宽与运维能力，避免重复造轮子"
     - "所有服务透明可查，架构可演进、可迁移、可回溯"
   # Wiki 地址
-  wiki_url: "https://wiki.mghub.top"
+  wiki_url: "https://wiki.example.com"
   # 导航页地址
-  nav_url: "https://nav.mghub.top"
+  nav_url: "https://nav.example.com"
 ```
 
-## 部署到 RockyLinux 9（VPS）
+## 部署到 Linux（VPS）
 
 ### 1. 上传文件
 
 ```bash
 # 创建项目目录
-sudo mkdir -p /opt/mghub-portal
-sudo mkdir -p /opt/mghub-portal/data
-sudo mkdir -p /opt/mghub-portal/web/static/uploads
+sudo mkdir -p /opt/portal
+sudo mkdir -p /opt/portal/data
+sudo mkdir -p /opt/portal/web/static/uploads
 
 # 上传二进制和配置
-sudo cp mghub-portal /opt/mghub-portal/
-sudo cp config.yaml /opt/mghub-portal/
-sudo chmod +x /opt/mghub-portal/mghub-portal
+sudo cp portal /opt/portal/
+sudo cp config.yaml /opt/portal/
+sudo chmod +x /opt/portal/portal
 
 # 创建专用用户
-sudo useradd -r -s /sbin/nologin mghub
-sudo chown -R mghub:mghub /opt/mghub-portal
+sudo useradd -r -s /sbin/nologin portal
+sudo chown -R portal:portal /opt/portal
 ```
 
 ### 2. systemd 服务
 
-创建 `/etc/systemd/system/mghub-portal.service`：
+创建 `/etc/systemd/system/portal.service`：
 
 ```ini
 [Unit]
-Description=MGHUB Portal Service
+Description=Self-Hosted Portal Service
 After=network.target
 
 [Service]
 Type=simple
-User=mghub
-Group=mghub
-WorkingDirectory=/opt/mghub-portal
-ExecStart=/opt/mghub-portal/mghub-portal /opt/mghub-portal/config.yaml
+User=portal
+Group=portal
+WorkingDirectory=/opt/portal
+ExecStart=/opt/portal/portal /opt/portal/config.yaml
 Restart=always
 RestartSec=5
 Environment=GIN_MODE=release
@@ -206,25 +208,25 @@ WantedBy=multi-user.target
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable mghub-portal
-sudo systemctl start mghub-portal
-sudo systemctl status mghub-portal
+sudo systemctl enable portal
+sudo systemctl start portal
+sudo systemctl status portal
 ```
 
 ### 3. nginx 反向代理
 
 确保 nginx 已安装并配置好 SSL 证书（可用 certbot 或现有的 SNI 分流架构）。
 
-创建 `/etc/nginx/conf.d/mghub-portal.conf`：
+创建 `/etc/nginx/conf.d/portal.conf`：
 
 ```nginx
-# 首页 mghub.top
+# 首页 example.com
 server {
     listen 443 ssl http2;
-    server_name mghub.top;
+    server_name example.com;
 
-    ssl_certificate     /path/to/mghub.top.crt;
-    ssl_certificate_key /path/to/mghub.top.key;
+    ssl_certificate     /path/to/example.com.crt;
+    ssl_certificate_key /path/to/example.com.key;
 
     location / {
         proxy_pass http://127.0.0.1:8080;
@@ -235,13 +237,13 @@ server {
     }
 }
 
-# 导航页 nav.mghub.top
+# 导航页 nav.example.com
 server {
     listen 443 ssl http2;
-    server_name nav.mghub.top;
+    server_name nav.example.com;
 
-    ssl_certificate     /path/to/nav.mghub.top.crt;
-    ssl_certificate_key /path/to/nav.mghub.top.key;
+    ssl_certificate     /path/to/nav.example.com.crt;
+    ssl_certificate_key /path/to/nav.example.com.key;
 
     location / {
         proxy_pass http://127.0.0.1:8080;
@@ -263,8 +265,12 @@ sudo systemctl reload nginx
 ### 4. 防火墙
 
 ```bash
+# RockyLinux / CentOS
 sudo firewall-cmd --permanent --add-service=https
 sudo firewall-cmd --reload
+
+# Ubuntu / Debian
+sudo ufw allow https
 ```
 
 ## 用户角色说明
@@ -327,7 +333,7 @@ mghub-nav/
 │       │   └── theme.js       # 主题切换模块（浅色/深色/auto 三态）
 │       └── uploads/           # 用户上传的图标/Logo（运行时生成）
 └── data/                      # 运行时生成
-    └── mghub.db               # SQLite 数据库
+    └── portal.db              # SQLite 数据库
 ```
 
 ## 数据库表结构
@@ -348,28 +354,28 @@ mghub-nav/
 ### 查看日志
 
 ```bash
-sudo journalctl -u mghub-portal -f
+sudo journalctl -u portal -f
 ```
 
 ### 重启服务
 
 ```bash
-sudo systemctl restart mghub-portal
+sudo systemctl restart portal
 ```
 
 ### 备份数据库
 
 ```bash
-sudo cp /opt/mghub-portal/data/mghub.db /backup/mghub-$(date +%Y%m%d).db
+sudo cp /opt/portal/data/portal.db /backup/portal-$(date +%Y%m%d).db
 ```
 
 ### 更新版本
 
 ```bash
-sudo systemctl stop mghub-portal
-sudo cp new-mghub-portal /opt/mghub-portal/mghub-portal
-sudo chmod +x /opt/mghub-portal/mghub-portal
-sudo systemctl start mghub-portal
+sudo systemctl stop portal
+sudo cp new-portal /opt/portal/portal
+sudo chmod +x /opt/portal/portal
+sudo systemctl start portal
 ```
 
 ### 重置超管密码
@@ -377,9 +383,9 @@ sudo systemctl start mghub-portal
 如果忘记超管密码，停止服务后删除数据库中的 admin 用户，重启服务会自动重新创建默认超管（admin/008800）：
 
 ```bash
-sudo systemctl stop mghub-portal
-sqlite3 /opt/mghub-portal/data/mghub.db "DELETE FROM users WHERE username='admin';"
-sudo systemctl start mghub-portal
+sudo systemctl stop portal
+sqlite3 /opt/portal/data/portal.db "DELETE FROM users WHERE username='admin';"
+sudo systemctl start portal
 ```
 
 ## 安全建议
@@ -387,7 +393,7 @@ sudo systemctl start mghub-portal
 1. **修改默认密码**：首次登录 admin/008800 后立即修改
 2. **修改 session_secret**：config.yaml 中改为随机字符串
 3. **HTTPS**：确保 nginx 配置了 SSL，生产环境将 Cookie 标记为 Secure
-4. **定期备份**：SQLite 单文件，定期备份 data/mghub.db
+4. **定期备份**：SQLite 单文件，定期备份 data/portal.db
 5. **限制注册**：本系统不开放公开注册，用户由超管在后台添加
 6. **上传目录**：确保 uploads 目录不可执行脚本（nginx 配置中仅作为静态文件）
 7. **文件上传**：限制上传文件大小和类型，当前支持 png/jpg/webp/gif/svg
@@ -403,6 +409,14 @@ go mod download
 # 开发模式运行
 go run .
 ```
+
+### 修改 Go Module 名称
+
+本项目的 Go module 名称为 `mghub-portal`（go.mod 中定义）。如果你希望修改为自己的名称：
+
+1. 修改 `go.mod` 中的 `module mghub-portal` 为 `module your-module-name`
+2. 全局替换所有 Go 文件中的 import 路径 `mghub-portal/` 为 `your-module-name/`
+3. 重新编译
 
 ### 前端开发
 
@@ -444,4 +458,4 @@ go run .
 
 ## License
 
-MGHUB 内部使用
+MIT

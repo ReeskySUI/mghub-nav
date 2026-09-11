@@ -65,7 +65,7 @@ func Load(path string) (*Config, error) {
 		cfg.Server.Mode = "release"
 	}
 	if cfg.Database.Path == "" {
-		cfg.Database.Path = "./data/mghub.db"
+		cfg.Database.Path = "./data/portal.db"
 	}
 	if cfg.Auth.SessionMaxAge == 0 {
 		cfg.Auth.SessionMaxAge = 168
