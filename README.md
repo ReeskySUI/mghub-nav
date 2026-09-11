@@ -219,6 +219,7 @@ sudo systemctl status portal
 
 ```nginx
 # 首页
+# 80>>443 跳转 有统一的跳转可以不用添加这两个
 server {
     listen 80;
     server_name example.com;
@@ -241,7 +242,7 @@ server {
     }
 }
 
-# 导航页
+# 导航页 80>>443 跳转 有统一的跳转可以不用添加这两个
 server {
     listen 80;
     server_name nav.example.com;
