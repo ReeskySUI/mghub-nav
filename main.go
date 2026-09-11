@@ -164,7 +164,7 @@ func main() {
 		c.HTML(http.StatusNotFound, "error.html", gin.H{"error": "页面不存在"})
 	})
 
-	addr := fmt.Sprintf(":%d", cfg.Server.Port)
+	addr := fmt.Sprintf("%s:%d", cfg.Server.ListenAddress, cfg.Server.Port)
 	log.Printf("Portal 启动中...")
 	log.Printf("  首页域: %s", cfg.Server.HomeHost)
 	log.Printf("  导航域: %s", cfg.Server.NavHost)
