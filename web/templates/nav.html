@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/static/css/style.css">
   {{if .favicon}}<link rel="icon" href="{{.favicon}}">{{else}}<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230175CB'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'>{{.logo_text}}</text></svg>">{{end}}
   <script>
-    (function(){try{var t=localStorage.getItem('mghub_theme')||'auto';var e=t==='auto'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;document.documentElement.setAttribute('data-theme',e);}catch(_){}})();
+    (function(){try{var t=localStorage.getItem('portal_theme')||'auto';var e=t==='auto'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;document.documentElement.setAttribute('data-theme',e);}catch(_){}})();
   </script>
 </head>
 <body>
