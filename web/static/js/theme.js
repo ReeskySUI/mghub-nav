@@ -1,10 +1,10 @@
 /* ============================================
-   MGHUB 主题切换（浅色/深色/跟随系统）
+   主题切换（浅色/深色/跟随系统）
    ============================================ */
 (function () {
   'use strict';
 
-  const STORAGE_KEY = 'mghub_theme';
+  const STORAGE_KEY = 'portal_theme';
 
   function getSystemTheme() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -62,7 +62,7 @@
   initTheme();
 
   // 暴露给全局
-  window.MGHUBTheme = {
+  window.PortalTheme = {
     cycle: cycleTheme,
     get: getStoredTheme,
     getLabel: getThemeLabel,
