@@ -1,0 +1,49 @@
+# MGHUB Portal 配置文件
+server:
+  port: 8080
+  # 首页域名（用于 Host 路由区分）
+  home_host: "mghub.top"
+  # 导航页域名
+  nav_host: "nav.mghub.top"
+  # 运行模式：debug / release
+  mode: "release"
+
+database:
+  # SQLite 数据库文件路径
+  path: "./data/mghub.db"
+
+auth:
+  # Session 密钥（生产环境请修改）
+  session_secret: "mghub-portal-change-me-in-production"
+  # Session 过期时间（小时）
+  session_max_age: 168
+  # 登录失败锁定阈值
+  max_login_attempts: 5
+  # 锁定时长（分钟）
+  lockout_minutes: 15
+
+upload:
+  # 上传文件保存目录
+  dir: "./web/static/uploads"
+  # 允许的图片类型
+  allowed_types:
+    - "image/jpeg"
+    - "image/png"
+    - "image/gif"
+    - "image/webp"
+    - "image/svg+xml"
+  # 单文件最大尺寸（MB）
+  max_size_mb: 2
+
+site:
+  title: "MGHUB"
+  subtitle: "➖实验室"
+  # 首页愿景描述（从 wiki 01-vision.md 精简）
+  vision:
+    - "以极低成本获得稳定、可控、可自托管的数字服务"
+    - "成员共享硬件、带宽与运维能力，避免重复造轮子"
+    - "所有服务透明可查，架构可演进、可迁移、可回溯"
+  # Wiki 地址
+  wiki_url: "https://wiki.mghub.top"
+  # 导航页地址
+  nav_url: "https://nav.mghub.top"

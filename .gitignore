@@ -1,0 +1,35 @@
+# 二进制文件
+*.exe
+*.exe~
+mghub-portal
+mghub-portal-linux
+mghub-portal-darwin
+
+# 数据库
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# 上传文件
+web/static/uploads/*
+!web/static/uploads/.gitkeep
+
+# 日志
+*.log
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 临时文件
+*.tmp
+*.bak
+debug_*.py
+reset_*.py
+reset_*.json
