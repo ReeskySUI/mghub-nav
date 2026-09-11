@@ -16,10 +16,11 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port     int    `yaml:"port"`
-	HomeHost string `yaml:"home_host"`
-	NavHost  string `yaml:"nav_host"`
-	Mode     string `yaml:"mode"`
+	Port          int    `yaml:"port"`
+	ListenAddress string `yaml:"listen_address"`
+	HomeHost      string `yaml:"home_host"`
+	NavHost       string `yaml:"nav_host"`
+	Mode          string `yaml:"mode"`
 }
 
 type DatabaseConfig struct {
@@ -60,6 +61,9 @@ func Load(path string) (*Config, error) {
 	// 设置默认值
 	if cfg.Server.Port == 0 {
 		cfg.Server.Port = 8080
+	}
+	if cfg.Server.ListenAddress == "" {
+		cfg.Server.ListenAddress = "0.0.0.0"
 	}
 	if cfg.Server.Mode == "" {
 		cfg.Server.Mode = "release"

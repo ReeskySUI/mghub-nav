@@ -1,5 +1,7 @@
 # Portal 配置文件
 server:
+  # 监听地址：127.0.0.1 仅本地访问（配合 nginx 反向代理），0.0.0.0 监听所有网卡
+  listen_address: "127.0.0.1"
   port: 8080
   # 首页域名（用于 Host 路由区分）
   home_host: "example.com"
