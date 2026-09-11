@@ -1,5 +1,5 @@
 /* ============================================
-   MGHUB 管理后台交互脚本
+   管理后台交互脚本
    ============================================ */
 
 (function () {
@@ -176,7 +176,7 @@
             cat.id +
             ", '" +
             escapeHtml(cat.name) +
-            "')\">删除</button>" +
+            "')">删除</button>" +
             '</td></tr>'
           );
         })
@@ -378,7 +378,7 @@
             item.id +
             ", '" +
             escapeHtml(item.name) +
-            "')\">删除</button>" +
+            "')">删除</button>" +
             '</td></tr>'
           );
         })
@@ -695,7 +695,7 @@
           '<div style="font-size:0.75rem;color:var(--text-muted);flex-shrink:0;">排序:' + v.sort_order + '</div>' +
           '<div class="item-actions">' +
           '<button class="btn btn-sm btn-outline" onclick="editVision(' + v.id + ", '" + escapeHtml(v.content).replace(/'/g, "\\'") + "', " + v.sort_order + ')">编辑</button>' +
-          '<button class="btn btn-sm btn-danger" onclick="deleteVision(' + v.id + ", '" + escapeHtml(v.content).replace(/'/g, "\\'") + "')\">删除</button>" +
+          '<button class="btn btn-sm btn-danger" onclick="deleteVision(' + v.id + ", '" + escapeHtml(v.content).replace(/'/g, "\\'") + "')">删除</button>' +
           '</div></div>'
         );
       }).join('');
@@ -779,8 +779,8 @@
           '<div class="item-url">' + escapeHtml(l.url) + '</div>' +
           '<span class="tag tag-member" style="flex-shrink:0;">' + (linkTypeLabels[l.link_type] || l.link_type) + '</span>' +
           '<div class="item-actions">' +
-          '<button class="btn btn-sm btn-outline" onclick=\'editLink(' + JSON.stringify(l).replace(/'/g, "\\'") + ")\">编辑</button>" +
-          '<button class="btn btn-sm btn-danger" onclick="deleteLink(' + l.id + ", '" + escapeHtml(l.name).replace(/'/g, "\\'") + "')\">删除</button>" +
+          '<button class="btn btn-sm btn-outline" onclick=\'editLink(' + JSON.stringify(l).replace(/'/g, "\\'") + ")\'>编辑</button>" +
+          '<button class="btn btn-sm btn-danger" onclick="deleteLink(' + l.id + ", '" + escapeHtml(l.name).replace(/'/g, "\\'") + "')">删除</button>" +
           '</div></div>'
         );
       }).join('');
