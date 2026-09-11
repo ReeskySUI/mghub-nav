@@ -249,8 +249,30 @@ func (h *APIHandler) UpdateUser(c *gin.Context) {
 			return
 		}
 	}
-	role := model.Role(req.Role)
-	status := model.UserStatus(req.Status)
+
+	// 获取当前用户信息，用于空值时保持原值
+	user, err := h.store.GetUserByID(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "用户不存在"})
+		return
+	}
+
+	// 超管永不禁用，角色不可修改
+	if user.Role == model.RoleSuperAdmin {
+		req.Role = string(model.RoleSuperAdmin)
+		req.Status = string(model.UserActive)
+	}
+
+	// 空值时保持原值
+	role := user.Role
+	if req.Role != "" {
+		role = model.Role(req.Role)
+	}
+	status := user.Status
+	if req.Status != "" {
+		status = model.UserStatus(req.Status)
+	}
+
 	if err := h.store.UpdateUser(id, req.DisplayName, role, status); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

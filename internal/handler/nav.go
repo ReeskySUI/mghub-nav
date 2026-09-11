@@ -75,6 +75,23 @@ func (h *NavHandler) Index(c *gin.Context) {
 	}
 	hasRestriction := !isAdmin && len(allowedCategoryIDs) > 0
 
+	// 根据导航项可见范围过滤
+	// all: 所有登录用户可见
+	// member: 成员及以上可见（等同于 all，因为能登录的都是成员及以上）
+	// admin: 仅管理员及以上可见
+	var visibleItems []*model.NavItem
+	for _, item := range items {
+		if isAdmin {
+			// 管理员和超管可见所有导航项
+			visibleItems = append(visibleItems, item)
+		} else {
+			// 普通成员只能看到 all 或 member 的导航项
+			if item.VisibleRoles == model.VisibleAll || item.VisibleRoles == model.VisibleMember {
+				visibleItems = append(visibleItems, item)
+			}
+		}
+	}
+
 	type CategoryWithItems struct {
 		Category *model.Category
 		Items    []*model.NavItem
@@ -85,7 +102,7 @@ func (h *NavHandler) Index(c *gin.Context) {
 			continue // 用户无权限查看此分类
 		}
 		var catItems []*model.NavItem
-		for _, item := range items {
+		for _, item := range visibleItems {
 			if item.CategoryID == cat.ID {
 				catItems = append(catItems, item)
 			}
@@ -98,7 +115,7 @@ func (h *NavHandler) Index(c *gin.Context) {
 
 	// 过滤 all_items，只包含用户有权限的分类下的导航项
 	var allowedItems []*model.NavItem
-	for _, item := range items {
+	for _, item := range visibleItems {
 		if !hasRestriction || allowedSet[item.CategoryID] {
 			allowedItems = append(allowedItems, item)
 		}
