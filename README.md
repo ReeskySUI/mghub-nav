@@ -1,4 +1,4 @@
-# MGHUB-Nav - 自托管导航与首页系统
+# Self-Hosted Portal - 自托管导航与首页系统
 
 一个轻量级的自托管导航与首页系统，包含公网首页和成员导航页，基于 Go + Gin + SQLite 构建，单二进制部署。适用于个人/小团队的自托管服务统一入口。
 
@@ -112,6 +112,8 @@ CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o portal-darwin .
 
 ```yaml
 server:
+  # 监听地址：127.0.0.1 仅本地访问（配合 nginx 反向代理），0.0.0.0 监听所有网卡
+  listen_address: "127.0.0.1"
   port: 8080
   # 首页域名（用于 Host 路由区分）
   home_host: "example.com"
@@ -177,17 +179,17 @@ sudo cp config.yaml /opt/portal/
 sudo chmod +x /opt/portal/portal
 
 # 创建专用用户
-sudo useradd -r -s /sbin/nologin portal
+sudo useradd -r -s /bin/false portal
 sudo chown -R portal:portal /opt/portal
 ```
 
-### 2. systemd 服务
+### 2. 配置 systemd 服务
 
 创建 `/etc/systemd/system/portal.service`：
 
 ```ini
 [Unit]
-Description=Self-Hosted Portal Service
+Description=Self-Hosted Portal
 After=network.target
 
 [Service]
@@ -198,14 +200,12 @@ WorkingDirectory=/opt/portal
 ExecStart=/opt/portal/portal /opt/portal/config.yaml
 Restart=always
 RestartSec=5
-Environment=GIN_MODE=release
 
 [Install]
 WantedBy=multi-user.target
 ```
 
 启动服务：
-
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable portal
@@ -213,20 +213,24 @@ sudo systemctl start portal
 sudo systemctl status portal
 ```
 
-### 3. nginx 反向代理
-
-确保 nginx 已安装并配置好 SSL 证书（可用 certbot 或现有的 SNI 分流架构）。
+### 3. 配置 Nginx 反向代理
 
 创建 `/etc/nginx/conf.d/portal.conf`：
 
 ```nginx
-# 首页 example.com
+# 首页
+server {
+    listen 80;
+    server_name example.com;
+    return 301 https://$host$request_uri;
+}
+
 server {
     listen 443 ssl http2;
     server_name example.com;
 
-    ssl_certificate     /path/to/example.com.crt;
-    ssl_certificate_key /path/to/example.com.key;
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
 
     location / {
         proxy_pass http://127.0.0.1:8080;
@@ -237,13 +241,19 @@ server {
     }
 }
 
-# 导航页 nav.example.com
+# 导航页
+server {
+    listen 80;
+    server_name nav.example.com;
+    return 301 https://$host$request_uri;
+}
+
 server {
     listen 443 ssl http2;
     server_name nav.example.com;
 
-    ssl_certificate     /path/to/nav.example.com.crt;
-    ssl_certificate_key /path/to/nav.example.com.key;
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
 
     location / {
         proxy_pass http://127.0.0.1:8080;
@@ -255,206 +265,156 @@ server {
 }
 ```
 
-重载 nginx：
-
+重载 Nginx：
 ```bash
 sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-### 4. 防火墙
+## 用户角色与权限
 
-```bash
-# RockyLinux / CentOS
-sudo firewall-cmd --permanent --add-service=https
-sudo firewall-cmd --reload
+| 角色 | 导航页 | 管理后台 | 用户管理 | 说明 |
+|------|--------|----------|----------|------|
+| 超级管理员 | ✅ | ✅ | ✅ | 唯一，可管理所有用户和角色，永不禁用 |
+| 管理员 | ✅ | ✅ | ❌ | 可管理分类、导航项、站点设置 |
+| 普通成员 | ✅ | ❌ | ❌ | 只能访问导航页，按权限查看导航项 |
 
-# Ubuntu / Debian
-sudo ufw allow https
-```
+### 导航项可见范围
 
-## 用户角色说明
-
-| 角色 | 权限 |
-|------|------|
-| 超级管理员 (super_admin) | 全部权限：导航管理、分类管理、用户管理（含角色分配和分类权限）、站点设置 |
-| 管理员 (admin) | 导航管理、分类管理、站点设置；不能管理用户 |
-| 普通成员 (member) | 登录后查看导航页、搜索、切换布局 |
-
-### 角色规则
-- 超级管理员唯一且不可删除，永不禁用
-- 超级管理员用户名不可修改
-- 管理员不能访问用户管理页面
-- 登录失败 5 次后锁定 15 分钟
+每个导航项可设置可见范围：
+- **所有登录用户可见**：普通成员、管理员、超管都能看到
+- **成员及以上可见**：管理员和超管可见（普通成员不可见）
+- **仅管理员可见**：只有管理员和超管可见
 
 ### 用户分类权限
-- 可为每个用户指定可见的导航分类
-- 不指定（空）表示该用户可见所有分类
-- 管理员和超管不受分类权限限制，可见所有分类
+
+超级管理员可以为每个用户指定可见的导航分类：
+- 不勾选任何分类：用户可见所有分类
+- 勾选特定分类：用户只能看到勾选分类下的导航项
 
 ## 项目结构
 
 ```
 mghub-nav/
-├── main.go                    # 入口：路由注册、初始化、Host 分发
-├── config.yaml                # 配置文件
-├── go.mod / go.sum           # 依赖管理
-├── .gitignore
+├── main.go                  # 入口文件，路由注册
+├── config.yaml              # 配置文件
+├── go.mod                   # Go 模块定义
+├── go.sum                   # 依赖锁定
 ├── internal/
-│   ├── config/
-│   │   └── config.go          # 配置加载
-│   ├── model/
-│   │   └── model.go           # 数据模型（User/Category/NavItem/Session/SiteSetting/HomeVision/SiteLink/UserCategory）
-│   ├── store/
-│   │   └── store.go           # SQLite 数据访问层（8 张表 CRUD）
-│   ├── auth/
-│   │   └── auth.go            # 认证：bcrypt 密码哈希 + Session 管理 + 登录失败锁定
-│   ├── middleware/
-│   │   └── middleware.go      # 中间件：AuthRequired/AdminRequired/SuperAdminRequired/HostRouter
-│   └── handler/
-│       ├── home.go            # 首页处理器
-│       ├── nav.go             # 导航页处理器（含分类权限过滤）
-│       ├── auth_handler.go    # 登录/登出处理器
-│       ├── admin.go           # 管理后台页面处理器
-│       └── api.go             # REST API（分类/导航项/用户/上传/站点设置/愿景/链接/用户分类权限）
-├── web/
-│   ├── templates/             # HTML 模板（embed 嵌入二进制）
-│   │   ├── home.html          # 首页
-│   │   ├── nav.html           # 导航页
-│   │   ├── login.html         # 登录页
-│   │   ├── admin.html         # 管理后台（概览/分类/导航/站点设置/用户管理）
-│   │   └── error.html         # 错误页
-│   └── static/                # 静态资源（embed 嵌入二进制）
-│       ├── css/
-│       │   └── style.css      # 主题样式（浅色/深色变量、组件样式）
-│       ├── js/
-│       │   ├── nav.js         # 导航页交互（搜索/布局切换/渲染）
-│       │   ├── admin.js       # 管理后台交互（CRUD/表单/上传）
-│       │   └── theme.js       # 主题切换模块（浅色/深色/auto 三态）
-│       └── uploads/           # 用户上传的图标/Logo（运行时生成）
-└── data/                      # 运行时生成
-    └── portal.db              # SQLite 数据库
+│   ├── auth/                # 认证模块（密码哈希、Session 管理）
+│   │   └── auth.go
+│   ├── config/              # 配置加载
+│   │   └── config.go
+│   ├── handler/             # HTTP 处理器
+│   │   ├── home.go          # 首页处理器
+│   │   ├── nav.go           # 导航页处理器
+│   │   ├── auth_handler.go  # 登录/登出处理器
+│   │   ├── admin.go         # 管理后台处理器
+│   │   └── api.go           # REST API 处理器
+│   ├── middleware/          # 中间件
+│   │   └── middleware.go    # 认证、权限、Host 路由中间件
+│   ├── model/               # 数据模型
+│   │   └── model.go         # 用户、分类、导航项等结构体定义
+│   └── store/               # 数据库操作
+│       └── store.go         # SQLite CRUD 操作
+└── web/
+    ├── templates/           # HTML 模板
+    │   ├── home.html        # 首页模板
+    │   ├── nav.html         # 导航页模板
+    │   ├── login.html       # 登录页模板
+    │   ├── admin.html       # 管理后台模板
+    │   └── error.html       # 错误页模板
+    └── static/              # 静态资源
+        ├── css/
+        │   └── style.css    # 全局样式（含浅色/深色主题）
+        └── js/
+            ├── theme.js     # 主题切换逻辑
+            ├── nav.js       # 导航页交互（搜索、布局切换）
+            └── admin.js     # 管理后台交互（CRUD 操作）
 ```
 
-## 数据库表结构
+## API 接口
 
-| 表名 | 说明 |
-|------|------|
-| users | 用户表（用户名、密码哈希、角色、状态、登录失败计数） |
-| categories | 导航分类表（名称、图标、排序） |
-| nav_items | 导航项表（名称、URL、图标、描述、分类、可见范围、排序） |
-| sessions | Session 表（Token、用户 ID、过期时间） |
-| settings | 站点设置表（key-value 存储，含 Logo/favicon/首页内容等） |
-| home_visions | 首页愿景要点表（内容、排序） |
-| site_links | 首页链接表（名称、URL、主题、排序） |
-| user_categories | 用户分类权限表（user_id + category_id 联合主键） |
+所有 API 接口都需要登录认证（Session Cookie），管理类接口需要管理员或超管权限。
 
-## 维护
+### 分类管理
+- `GET /api/categories` - 获取分类列表
+- `POST /api/categories` - 创建分类（管理员）
+- `PUT /api/categories/:id` - 更新分类（管理员）
+- `DELETE /api/categories/:id` - 删除分类（管理员）
 
-### 查看日志
+### 导航项管理
+- `GET /api/nav-items` - 获取导航项列表
+- `GET /api/nav-items/search?q=关键词` - 搜索导航项
+- `POST /api/nav-items` - 创建导航项（管理员）
+- `PUT /api/nav-items/:id` - 更新导航项（管理员）
+- `DELETE /api/nav-items/:id` - 删除导航项（管理员）
 
-```bash
-sudo journalctl -u portal -f
-```
+### 用户管理（仅超管）
+- `GET /api/users` - 获取用户列表
+- `POST /api/users` - 创建用户
+- `PUT /api/users/:id` - 更新用户
+- `DELETE /api/users/:id` - 删除用户
+- `POST /api/users/:id/reset-password` - 重置密码
+- `GET /api/users/:id/categories` - 获取用户可见分类
+- `PUT /api/users/:id/categories` - 更新用户可见分类
 
-### 重启服务
+### 站点设置
+- `GET /api/settings` - 获取站点设置
+- `POST /api/settings` - 更新站点设置（管理员）
 
-```bash
-sudo systemctl restart portal
-```
+### 愿景要点
+- `GET /api/visions` - 获取愿景列表
+- `POST /api/visions` - 创建愿景（管理员）
+- `PUT /api/visions/:id` - 更新愿景（管理员）
+- `DELETE /api/visions/:id` - 删除愿景（管理员）
 
-### 备份数据库
+### 站点链接
+- `GET /api/links` - 获取链接列表
+- `POST /api/links` - 创建链接（管理员）
+- `PUT /api/links/:id` - 更新链接（管理员）
+- `DELETE /api/links/:id` - 删除链接（管理员）
 
-```bash
-sudo cp /opt/portal/data/portal.db /backup/portal-$(date +%Y%m%d).db
-```
+### 其他
+- `POST /api/change-password` - 修改当前用户密码
+- `POST /api/upload` - 上传图片（管理员）
 
-### 更新版本
+## 修改 Go Module 名称
 
-```bash
-sudo systemctl stop portal
-sudo cp new-portal /opt/portal/portal
-sudo chmod +x /opt/portal/portal
-sudo systemctl start portal
-```
+本项目的 Go module 名为 `mghub-portal`。如果你想修改为自己的名称：
 
-### 重置超管密码
-
-如果忘记超管密码，停止服务后删除数据库中的 admin 用户，重启服务会自动重新创建默认超管（admin/008800）：
-
-```bash
-sudo systemctl stop portal
-sqlite3 /opt/portal/data/portal.db "DELETE FROM users WHERE username='admin';"
-sudo systemctl start portal
-```
-
-## 安全建议
-
-1. **修改默认密码**：首次登录 admin/008800 后立即修改
-2. **修改 session_secret**：config.yaml 中改为随机字符串
-3. **HTTPS**：确保 nginx 配置了 SSL，生产环境将 Cookie 标记为 Secure
-4. **定期备份**：SQLite 单文件，定期备份 data/portal.db
-5. **限制注册**：本系统不开放公开注册，用户由超管在后台添加
-6. **上传目录**：确保 uploads 目录不可执行脚本（nginx 配置中仅作为静态文件）
-7. **文件上传**：限制上传文件大小和类型，当前支持 png/jpg/webp/gif/svg
-
-## 开发说明
-
-### 本地开发
-
-```bash
-# 安装依赖
-go mod download
-
-# 开发模式运行
-go run .
-```
-
-### 修改 Go Module 名称
-
-本项目的 Go module 名称为 `mghub-portal`（go.mod 中定义）。如果你希望修改为自己的名称：
-
-1. 修改 `go.mod` 中的 `module mghub-portal` 为 `module your-module-name`
-2. 全局替换所有 Go 文件中的 import 路径 `mghub-portal/` 为 `your-module-name/`
+1. 修改 `go.mod` 中的 module 名
+2. 全局替换所有 `import` 语句中的 `mghub-portal` 为新名称
 3. 重新编译
 
-### 前端开发
+```bash
+# 示例：修改为 my-portal
+sed -i 's/mghub-portal/my-portal/g' go.mod main.go internal/**/*.go
+go mod tidy
+go build -o portal .
+```
 
-前端模板和静态资源通过 Go embed 嵌入二进制，开发时修改后需要重新编译才能生效。
+## 常见问题
 
-### API 接口
+### 1. 登录后提示 Session 过期
 
-所有 API 接口位于 `/api/` 路径下，需要登录认证：
+检查 `config.yaml` 中的 `session_secret` 是否修改，以及浏览器是否禁用了 Cookie。
 
-| 方法 | 路径 | 说明 | 权限 |
-|------|------|------|------|
-| GET | /api/categories | 分类列表 | 登录用户 |
-| POST | /api/categories | 创建分类 | 管理员 |
-| PUT | /api/categories/:id | 更新分类 | 管理员 |
-| DELETE | /api/categories/:id | 删除分类 | 管理员 |
-| GET | /api/nav-items | 导航项列表 | 登录用户 |
-| POST | /api/nav-items | 创建导航项 | 管理员 |
-| PUT | /api/nav-items/:id | 更新导航项 | 管理员 |
-| DELETE | /api/nav-items/:id | 删除导航项 | 管理员 |
-| GET | /api/users | 用户列表 | 超管 |
-| POST | /api/users | 创建用户 | 超管 |
-| PUT | /api/users/:id | 更新用户 | 超管 |
-| DELETE | /api/users/:id | 删除用户 | 超管 |
-| POST | /api/users/:id/reset-password | 重置密码 | 超管 |
-| GET | /api/users/:id/categories | 用户分类权限 | 超管 |
-| PUT | /api/users/:id/categories | 更新用户分类权限 | 超管 |
-| GET | /api/settings | 站点设置 | 登录用户 |
-| POST | /api/settings | 保存站点设置 | 管理员 |
-| GET | /api/visions | 愿景要点列表 | 登录用户 |
-| POST | /api/visions | 创建愿景要点 | 管理员 |
-| PUT | /api/visions/:id | 更新愿景要点 | 管理员 |
-| DELETE | /api/visions/:id | 删除愿景要点 | 管理员 |
-| GET | /api/links | 链接列表 | 登录用户 |
-| POST | /api/links | 创建链接 | 管理员 |
-| PUT | /api/links/:id | 更新链接 | 管理员 |
-| DELETE | /api/links/:id | 删除链接 | 管理员 |
-| POST | /api/upload | 上传图片 | 管理员 |
-| POST | /api/change-password | 修改自己的密码 | 登录用户 |
+### 2. 上传图片失败
+
+检查 `upload.dir` 目录是否存在且有写入权限，以及文件大小是否超过 `max_size_mb` 限制。
+
+### 3. 首页和导航页显示相同内容
+
+检查 `config.yaml` 中的 `home_host` 和 `nav_host` 是否配置正确，以及 Nginx 的 `proxy_set_header Host $host` 是否配置。
+
+### 4. 如何备份数据
+
+直接复制 `data/portal.db` 文件即可。建议定期备份。
+
+### 5. 如何重置超级管理员密码
+
+删除数据库文件后重启服务，会重新创建默认超管（admin/008800）。注意：这会清除所有数据！
 
 ## License
 
