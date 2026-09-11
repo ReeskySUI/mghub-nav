@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 - {{.site_title}}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  {{if .favicon}}<link rel="icon" href="{{.favicon}}">{{else}}<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230175CB'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'>{{.logo_text}}</text></svg>">{{end}}
+  <script>
+    (function(){try{var t=localStorage.getItem('mghub_theme')||'auto';var e=t==='auto'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;document.documentElement.setAttribute('data-theme',e);}catch(_){}})();
+  </script>
+</head>
+<body>
+  <div class="login-wrapper">
+    <div class="login-card">
+      <div class="login-header">
+        {{if .logo_light}}
+        <img src="{{.logo_light}}" alt="logo" data-logo-light style="width:48px;height:48px;object-fit:contain;margin:0 auto 12px;">
+        {{if .logo_dark}}<img src="{{.logo_dark}}" alt="logo" data-logo-dark style="width:48px;height:48px;object-fit:contain;margin:0 auto 12px;display:none;">{{end}}
+        {{else}}
+        <div class="logo-mark" style="margin:0 auto 12px;">{{.logo_text}}</div>
+        {{end}}
+        <h1>{{.site_title}} 导航</h1>
+        <p>请登录以访问服务导航</p>
+      </div>
+
+      {{if .error}}
+      <div class="login-error">{{.error}}</div>
+      {{end}}
+
+      <form method="POST" action="/login">
+        <div class="form-group">
+          <label class="form-label" for="username">用户名</label>
+          <input type="text" id="username" name="username" class="form-input"
+                 placeholder="请输入用户名" required autofocus autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">密码</label>
+          <input type="password" id="password" name="password" class="form-input"
+                 placeholder="请输入密码" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary">登 录</button>
+      </form>
+
+      <div class="login-footer">
+        <p>仅限 {{.site_title}} 成员访问 · <a href="{{.home_url}}">返回首页</a></p>
+      </div>
+    </div>
+  </div>
+  <script src="/static/js/theme.js"></script>
+  <script>
+    (function(){
+      function updateLogo(){
+        var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        var light = document.querySelector('[data-logo-light]');
+        var darkImg = document.querySelector('[data-logo-dark]');
+        if(light && darkImg){ light.style.display = dark ? 'none' : 'block'; darkImg.style.display = dark ? 'block' : 'none'; }
+      }
+      updateLogo();
+      new MutationObserver(updateLogo).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+    })();
+  </script>
+</body>
+</html>

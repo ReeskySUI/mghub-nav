@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{.site_title}} - {{.site_subtitle}}</title>
+  <meta name="description" content="{{.hero_sub}}">
+  {{if .favicon}}
+  <link rel="icon" href="{{.favicon}}">
+  {{else}}
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230175CB'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'>{{.logo_text}}</text></svg>">
+  {{end}}
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script>
+    (function(){try{var t=localStorage.getItem('mghub_theme')||'auto';var e=t==='auto'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;document.documentElement.setAttribute('data-theme',e);}catch(_){}})();
+  </script>
+  <style>
+    .logo-img { height: 32px; width: auto; display: block; }
+    .logo-mark-img { width: 36px; height: 36px; border-radius: 8px; object-fit: contain; }
+  </style>
+</head>
+<body>
+  <div class="home-wrapper">
+    <header class="home-header">
+      <div class="home-logo">
+        {{if .logo_light}}
+        <img src="{{.logo_light}}" class="logo-mark-img" alt="logo" data-logo-light>
+        {{if .logo_dark}}<img src="{{.logo_dark}}" class="logo-mark-img" alt="logo" data-logo-dark style="display:none;">{{end}}
+        {{else}}
+        <div class="logo-mark">{{.logo_text}}</div>
+        {{end}}
+        <span>{{.site_title}}</span>
+      </div>
+      <nav class="home-nav">
+        <button class="theme-toggle" data-theme-toggle title="切换主题">☀️</button>
+        {{range .header_links}}
+        <a href="{{.URL}}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">{{.Icon}} {{.Name}}</a>
+        {{end}}
+        {{if .logged_in}}
+          <a href="{{.nav_url}}" class="btn btn-primary btn-sm">进入导航</a>
+        {{else}}
+          <a href="{{.nav_url}}/login" class="btn btn-outline btn-sm">登录</a>
+        {{end}}
+      </nav>
+    </header>
+
+    <main class="home-hero">
+      <div class="badge">
+        <span>🧪</span>
+        <span>{{.home_badge}}</span>
+      </div>
+
+      <h1>{{.hero_title}}</h1>
+      <p class="subtitle">{{.hero_sub}}</p>
+
+      {{if .vision}}
+      <div class="home-vision">
+        {{range .vision}}
+        <div class="vision-item">
+          <div class="vision-icon">✦</div>
+          <div class="vision-text">{{.}}</div>
+        </div>
+        {{end}}
+      </div>
+      {{end}}
+
+      <div class="home-cta">
+        {{range .cta_links}}
+        <a href="{{.URL}}" target="_blank" rel="noopener" class="btn {{if eq .SortOrder 0}}btn-primary{{else}}btn-accent{{end}}">
+          <span>{{.Icon}}</span> {{.Name}}
+        </a>
+        {{end}}
+      </div>
+    </main>
+
+    <footer class="home-footer">
+      <p>{{.footer_text}}</p>
+    </footer>
+  </div>
+  <script src="/static/js/theme.js"></script>
+  <script>
+    // 根据主题切换 logo 图片
+    (function(){
+      function updateLogo(){
+        var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        var light = document.querySelector('[data-logo-light]');
+        var darkImg = document.querySelector('[data-logo-dark]');
+        if(light && darkImg){
+          light.style.display = dark ? 'none' : 'block';
+          darkImg.style.display = dark ? 'block' : 'none';
+        }
+      }
+      updateLogo();
+      new MutationObserver(updateLogo).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+    })();
+  </script>
+</body>
+</html>

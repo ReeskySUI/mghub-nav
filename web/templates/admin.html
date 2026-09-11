@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台 - {{.site_title}}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  {{if .settings.Favicon}}<link rel="icon" href="{{.settings.Favicon}}">{{end}}
+  <script>
+    (function(){try{var t=localStorage.getItem('mghub_theme')||'auto';var e=t==='auto'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;document.documentElement.setAttribute('data-theme',e);}catch(_){}})();
+  </script>
+  <style>
+    .dynamic-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .dynamic-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--border-light); border-radius: 8px; border: 1px solid var(--border); }
+    .dynamic-item .item-icon { font-size: 1.2rem; flex-shrink: 0; }
+    .dynamic-item .item-name { font-weight: 500; flex: 1; }
+    .dynamic-item .item-url { font-size: 0.8rem; color: var(--text-muted); flex: 2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dynamic-item .item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .logo-upload-row { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+    .logo-preview { width: 48px; height: 48px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; background: var(--white); flex-shrink: 0; overflow: hidden; }
+    .logo-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .logo-upload-info { flex: 1; }
+    .logo-upload-info label { font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 4px; }
+    .logo-upload-info .upload-area { margin: 0; padding: 8px 12px; font-size: 0.8rem; }
+    .section-subtitle { font-size: 0.95rem; font-weight: 600; color: var(--primary); margin: 20px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border-light); }
+  </style>
+</head>
+<body>
+  <div class="admin-wrapper">
+    <aside class="admin-sidebar">
+      <div class="brand">
+        {{if .settings.LogoLight}}
+        <img src="{{.settings.LogoLight}}" class="logo-mark" alt="logo" data-logo-light style="object-fit:contain;">
+        {{if .settings.LogoDark}}<img src="{{.settings.LogoDark}}" class="logo-mark" alt="logo" data-logo-dark style="object-fit:contain;display:none;">{{end}}
+        {{else}}
+        <div class="logo-mark">{{.logo_text}}</div>
+        {{end}}
+        <span>{{.site_title}} 管理</span>
+      </div>
+      <div class="admin-nav-item active" data-target="section-overview"><span>📊</span> 概览</div>
+      <div class="admin-nav-item" data-target="section-categories"><span>📁</span> 分类管理</div>
+      <div class="admin-nav-item" data-target="section-nav"><span>🔗</span> 导航管理</div>
+      <div class="admin-nav-item" data-target="section-settings"><span>⚙️</span> 站点设置</div>
+      {{if .is_super_admin}}
+      <div class="admin-nav-item" data-target="section-users"><span>👥</span> 用户管理</div>
+      {{end}}
+      <div style="margin-top:auto;padding:16px 20px;border-top:1px solid var(--border-light);">
+        <a href="/" class="btn btn-ghost btn-sm" style="width:100%;">← 返回导航</a>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1>管理后台</h1>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="theme-toggle" data-theme-toggle title="切换主题">☀️</button>
+          <span class="tag {{if .is_super_admin}}tag-super{{else}}tag-admin{{end}}">{{if .is_super_admin}}超级管理员{{else}}管理员{{end}}</span>
+          <span style="color:var(--text-secondary);font-size:0.9rem;">{{.current_user.Username}}</span>
+        </div>
+      </div>
+
+      <!-- 概览 -->
+      <section class="admin-section" id="section-overview">
+        <div class="admin-section-header"><h2>数据概览</h2></div>
+        <div class="admin-stats">
+          <div class="stat-card"><div class="stat-label">分类数量</div><div class="stat-value">{{.category_count}}</div></div>
+          <div class="stat-card"><div class="stat-label">导航项数量</div><div class="stat-value">{{.item_count}}</div></div>
+          <div class="stat-card"><div class="stat-label">用户数量</div><div class="stat-value">{{.user_count}}</div></div>
+        </div>
+        <p style="color:var(--text-secondary);font-size:0.9rem;">💡 在左侧菜单切换管理模块。所有内容均可后台编辑，无需重新部署。</p>
+      </section>
+
+      <!-- 分类管理 -->
+      <section class="admin-section" id="section-categories" style="display:none;">
+        <div class="admin-section-header">
+          <h2>分类管理</h2>
+          <button class="btn btn-primary btn-sm" id="btn-add-category">+ 添加分类</button>
+        </div>
+        <table class="admin-table" id="category-table">
+          <thead><tr><th style="width:60px;">图标</th><th>分类名称</th><th style="width:80px;">排序</th><th style="width:160px;">操作</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <!-- 导航管理 -->
+      <section class="admin-section" id="section-nav" style="display:none;">
+        <div class="admin-section-header">
+          <h2>导航管理</h2>
+          <button class="btn btn-primary btn-sm" id="btn-add-nav">+ 添加导航项</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="admin-table" id="nav-table">
+            <thead><tr>
+              <th style="width:50px;">图标</th><th>名称</th><th>分类</th><th>URL</th>
+              <th style="width:80px;">类型</th><th style="width:90px;">可见范围</th><th style="width:60px;">排序</th><th style="width:180px;">操作</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 站点设置 -->
+      <section class="admin-section" id="section-settings" style="display:none;">
+        <div class="admin-section-header">
+          <h2>站点设置</h2>
+          <button class="btn btn-primary btn-sm" id="btn-save-settings">保存基本设置</button>
+        </div>
+        <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:20px;">修改后点击对应区域的保存按钮，立即生效。</p>
+
+        <!-- 基本信息 -->
+        <h3 class="section-subtitle">基本信息</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+          <div class="form-group"><label class="form-label">站点标题</label><input type="text" id="set-site-title" class="form-input" value="{{.settings.SiteTitle}}"></div>
+          <div class="form-group"><label class="form-label">站点副标题</label><input type="text" id="set-site-subtitle" class="form-input" value="{{.settings.SiteSubtitle}}"></div>
+          <div class="form-group"><label class="form-label">Logo 文字（无图片时显示）</label><input type="text" id="set-logo-text" class="form-input" value="{{.settings.LogoText}}" maxlength="2"></div>
+          <div class="form-group"><label class="form-label">页脚文字</label><input type="text" id="set-footer-text" class="form-input" value="{{.settings.FooterText}}"></div>
+        </div>
+
+        <!-- Logo 与图标 -->
+        <h3 class="section-subtitle">Logo 与图标</h3>
+        <div class="logo-upload-row">
+          <div class="logo-preview" id="preview-logo-light">{{if .settings.LogoLight}}<img src="{{.settings.LogoLight}}">{{else}}<span style="color:var(--text-muted);font-size:0.7rem;">浅色</span>{{end}}</div>
+          <div class="logo-upload-info">
+            <label>浅色模式 Logo（推荐 PNG/WebP/SVG，透明背景）</label>
+            <div class="upload-area" id="upload-logo-light">📷 点击上传 <input type="file" accept="image/*"></div>
+            <input type="hidden" id="set-logo-light" value="{{.settings.LogoLight}}">
+          </div>
+        </div>
+        <div class="logo-upload-row">
+          <div class="logo-preview" id="preview-logo-dark" style="background:#333;">{{if .settings.LogoDark}}<img src="{{.settings.LogoDark}}">{{else}}<span style="color:#888;font-size:0.7rem;">深色</span>{{end}}</div>
+          <div class="logo-upload-info">
+            <label>深色模式 Logo（可选，不设置则使用浅色 Logo）</label>
+            <div class="upload-area" id="upload-logo-dark">📷 点击上传 <input type="file" accept="image/*"></div>
+            <input type="hidden" id="set-logo-dark" value="{{.settings.LogoDark}}">
+          </div>
+        </div>
+        <div class="logo-upload-row">
+          <div class="logo-preview" id="preview-favicon">{{if .settings.Favicon}}<img src="{{.settings.Favicon}}">{{else}}<span style="color:var(--text-muted);font-size:0.7rem;">ico</span>{{end}}</div>
+          <div class="logo-upload-info">
+            <label>Favicon 图标（浏览器标签页图标，推荐 32x32 PNG/SVG/ICO）</label>
+            <div class="upload-area" id="upload-favicon">📷 点击上传 <input type="file" accept="image/*,.ico"></div>
+            <input type="hidden" id="set-favicon" value="{{.settings.Favicon}}">
+          </div>
+        </div>
+
+        <!-- 首页内容 -->
+        <h3 class="section-subtitle">首页内容</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div class="form-group"><label class="form-label">首页徽章文字（标题上方小字）</label><input type="text" id="set-home-badge" class="form-input" value="{{.settings.HomeBadge}}"></div>
+          <div class="form-group"><label class="form-label">首页大标题</label><input type="text" id="set-home-hero-title" class="form-input" value="{{.settings.HomeHeroTitle}}"></div>
+          <div class="form-group" style="grid-column:1/-1;"><label class="form-label">首页标题下的题语</label><input type="text" id="set-home-hero-sub" class="form-input" value="{{.settings.HomeHeroSub}}"></div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <label class="form-label" style="margin:0;">愿景要点（首页展示，可动态增删）</label>
+          <button class="btn btn-primary btn-sm" id="btn-add-vision">+ 添加愿景</button>
+        </div>
+        <div class="dynamic-list" id="vision-list"></div>
+
+        <!-- 链接管理 -->
+        <h3 class="section-subtitle">链接管理</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <label class="form-label" style="margin:0;">站点链接（首页按钮和导航链接，可动态增删）</label>
+          <button class="btn btn-primary btn-sm" id="btn-add-link">+ 添加链接</button>
+        </div>
+        <div class="dynamic-list" id="link-list"></div>
+
+        <!-- 默认主题 -->
+        <h3 class="section-subtitle">主题</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+          <div class="form-group">
+            <label class="form-label">默认主题（新访客首次访问）</label>
+            <select id="set-default-theme" class="form-select">
+              <option value="auto" {{if eq .settings.DefaultTheme "auto"}}selected{{end}}>跟随系统</option>
+              <option value="light" {{if eq .settings.DefaultTheme "light"}}selected{{end}}>浅色</option>
+              <option value="dark" {{if eq .settings.DefaultTheme "dark"}}selected{{end}}>深色</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- 用户管理 -->
+      {{if .is_super_admin}}
+      <section class="admin-section" id="section-users" style="display:none;">
+        <div class="admin-section-header">
+          <h2>用户管理</h2>
+          <button class="btn btn-primary btn-sm" id="btn-add-user">+ 添加用户</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="admin-table" id="user-table">
+            <thead><tr><th style="width:50px;"></th><th>用户名</th><th>角色</th><th>状态</th><th style="width:320px;">操作</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+      {{end}}
+    </main>
+  </div>
+
+  <!-- 分类模态框 -->
+  <div class="modal-overlay" id="category-modal">
+    <div class="modal">
+      <div class="modal-header"><h3 id="category-modal-title">添加分类</h3><button class="modal-close" onclick="document.getElementById('category-modal').classList.remove('show')">×</button></div>
+      <form id="category-form">
+        <div class="form-group"><label class="form-label">分类名称 *</label><input type="text" id="cat-name" class="form-input" required></div>
+        <div class="form-group"><label class="form-label">图标 (emoji)</label><input type="text" id="cat-icon" class="form-input" maxlength="4"></div>
+        <div class="form-group"><label class="form-label">排序权重</label><input type="number" id="cat-sort" class="form-input" value="0" min="0"></div>
+        <div class="modal-footer"><button type="button" class="btn btn-ghost" onclick="document.getElementById('category-modal').classList.remove('show')">取消</button><button type="submit" class="btn btn-primary">保存</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 导航项模态框 -->
+  <div class="modal-overlay" id="nav-modal">
+    <div class="modal">
+      <div class="modal-header"><h3 id="nav-modal-title">添加导航项</h3><button class="modal-close" onclick="document.getElementById('nav-modal').classList.remove('show')">×</button></div>
+      <form id="nav-form">
+        <div class="form-group"><label class="form-label">所属分类 *</label><select id="nav-category" class="form-select" required></select></div>
+        <div class="form-group"><label class="form-label">名称 *</label><input type="text" id="nav-name" class="form-input" required></div>
+        <div class="form-group"><label class="form-label">URL *</label><input type="url" id="nav-url" class="form-input" required></div>
+        <div class="form-group"><label class="form-label">描述</label><textarea id="nav-desc" class="form-textarea"></textarea></div>
+        <div class="form-group">
+          <label class="form-label">图标</label>
+          <div class="icon-picker">
+            <div class="icon-preview" id="icon-preview">🔗</div>
+            <div class="icon-inputs">
+              <div class="icon-type-tabs"><button type="button" data-type="emoji" class="active">Emoji</button><button type="button" data-type="image">上传图片</button></div>
+              <div id="emoji-input-group"><input type="text" id="nav-icon-emoji" class="form-input" placeholder="输入 emoji，如：🌐" maxlength="4"></div>
+              <div id="image-input-group" style="display:none;">
+                <input type="text" id="nav-icon-image" class="form-input" readonly>
+                <div class="upload-area" id="upload-area" style="margin-top:8px;">📷 点击上传图标图片（PNG/JPG/GIF/SVG/WebP，最大 2MB）<input type="file" id="icon-file-input" accept="image/*"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">可见范围</label>
+          <select id="nav-visible-roles" class="form-select">
+            <option value="all">所有登录用户可见</option>
+            <option value="member">成员及以上可见</option>
+            <option value="admin">仅管理员可见</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-checkbox"><input type="checkbox" id="nav-public"><span>公网可访问服务（不勾选则为内网服务，需连接 Tailscale）</span></label></div>
+        <div class="form-group"><label class="form-label">排序权重</label><input type="number" id="nav-sort" class="form-input" value="0" min="0"></div>
+        <div class="modal-footer"><button type="button" class="btn btn-ghost" onclick="document.getElementById('nav-modal').classList.remove('show')">取消</button><button type="submit" class="btn btn-primary">保存</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 用户模态框 -->
+  <div class="modal-overlay" id="user-modal">
+    <div class="modal">
+      <div class="modal-header"><h3 id="user-modal-title">添加用户</h3><button class="modal-close" onclick="document.getElementById('user-modal').classList.remove('show')">×</button></div>
+      <form id="user-form">
+        <div class="form-group"><label class="form-label">用户名 *</label><input type="text" id="user-username" class="form-input" required></div>
+        <div class="form-group"><label class="form-label">角色 *</label>
+          <select id="user-role" class="form-select" required>
+            <option value="member">普通成员</option>
+            <option value="admin">管理员</option>
+          </select>
+        </div>
+        <div class="form-group" id="user-password-group"><label class="form-label">密码 *</label><input type="password" id="user-password" class="form-input" minlength="6"></div>
+        <div class="form-group" id="user-categories-group" style="display:none;">
+          <label class="form-label">可见分类（不勾选则可见所有分类）</label>
+          <div id="user-categories-list" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-ghost" onclick="document.getElementById('user-modal').classList.remove('show')">取消</button><button type="submit" class="btn btn-primary">保存</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 愿景模态框 -->
+  <div class="modal-overlay" id="vision-modal">
+    <div class="modal" style="max-width:460px;">
+      <div class="modal-header"><h3 id="vision-modal-title">添加愿景要点</h3><button class="modal-close" onclick="document.getElementById('vision-modal').classList.remove('show')">×</button></div>
+      <form id="vision-form">
+        <div class="form-group"><label class="form-label">愿景内容 *</label><textarea id="vision-content" class="form-textarea" rows="3" required></textarea></div>
+        <div class="form-group"><label class="form-label">排序权重</label><input type="number" id="vision-sort" class="form-input" value="0" min="0"></div>
+        <div class="modal-footer"><button type="button" class="btn btn-ghost" onclick="document.getElementById('vision-modal').classList.remove('show')">取消</button><button type="submit" class="btn btn-primary">保存</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 链接模态框 -->
+  <div class="modal-overlay" id="link-modal">
+    <div class="modal" style="max-width:460px;">
+      <div class="modal-header"><h3 id="link-modal-title">添加链接</h3><button class="modal-close" onclick="document.getElementById('link-modal').classList.remove('show')">×</button></div>
+      <form id="link-form">
+        <div class="form-group"><label class="form-label">链接名称 *</label><input type="text" id="link-name" class="form-input" placeholder="如：Wiki 文档" required></div>
+        <div class="form-group"><label class="form-label">链接地址 *</label><input type="url" id="link-url" class="form-input" required></div>
+        <div class="form-group"><label class="form-label">图标 (emoji)</label><input type="text" id="link-icon" class="form-input" placeholder="如：📖" maxlength="4"></div>
+        <div class="form-group"><label class="form-label">链接位置</label>
+          <select id="link-type" class="form-select">
+            <option value="header">首页顶部导航栏</option>
+            <option value="cta">首页底部按钮</option>
+            <option value="footer">页脚</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">排序权重</label><input type="number" id="link-sort" class="form-input" value="0" min="0"></div>
+        <div class="modal-footer"><button type="button" class="btn btn-ghost" onclick="document.getElementById('link-modal').classList.remove('show')">取消</button><button type="submit" class="btn btn-primary">保存</button></div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/js/theme.js"></script>
+  <script src="/static/js/admin.js"></script>
+  <script>
+    (function(){
+      function updateLogo(){
+        var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        var light = document.querySelector('[data-logo-light]');
+        var darkImg = document.querySelector('[data-logo-dark]');
+        if(light && darkImg){ light.style.display = dark ? 'none' : 'block'; darkImg.style.display = dark ? 'block' : 'none'; }
+      }
+      updateLogo();
+      new MutationObserver(updateLogo).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+    })();
+  </script>
+</body>
+</html>

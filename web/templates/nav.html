@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>导航 - {{.site_title}}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  {{if .favicon}}<link rel="icon" href="{{.favicon}}">{{else}}<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230175CB'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'>{{.logo_text}}</text></svg>">{{end}}
+  <script>
+    (function(){try{var t=localStorage.getItem('mghub_theme')||'auto';var e=t==='auto'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;document.documentElement.setAttribute('data-theme',e);}catch(_){}})();
+  </script>
+</head>
+<body>
+  <div class="nav-wrapper">
+    <header class="nav-header">
+      <a href="{{.home_url}}" class="brand" style="text-decoration:none;">
+        {{if .logo_light}}
+        <img src="{{.logo_light}}" class="logo-mark" alt="logo" data-logo-light style="object-fit:contain;">
+        {{if .logo_dark}}<img src="{{.logo_dark}}" class="logo-mark" alt="logo" data-logo-dark style="object-fit:contain;display:none;">{{end}}
+        {{else}}
+        <div class="logo-mark">{{.logo_text}}</div>
+        {{end}}
+        <span>{{.site_title}}</span>
+      </a>
+
+      <div class="nav-search">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="搜索服务名称、描述或地址... (Ctrl+K)" autocomplete="off">
+      </div>
+
+      <div class="nav-actions">
+        <button class="theme-toggle" data-theme-toggle title="切换主题">☀️</button>
+        <div class="layout-toggle">
+          <button data-layout="grid" class="active" title="网格布局">▦</button>
+          <button data-layout="list" title="列表布局">☰</button>
+        </div>
+
+        <div class="user-menu">
+          <button class="user-menu-btn">
+            <span class="avatar">{{printf "%.1s" .current_user.Username | upper}}</span>
+            <span>{{.current_user.Username}}</span>
+            <span style="font-size:0.7rem;">▾</span>
+          </button>
+          <div class="user-dropdown">
+            {{if .is_admin}}
+            <a href="/admin">⚙️ 管理后台</a>
+            {{end}}
+            <a href="{{.wiki_url}}" target="_blank" rel="noopener">📖 Wiki 文档</a>
+            <a href="{{.home_url}}">🏠 返回首页</a>
+            <div class="dropdown-divider"></div>
+            <form method="POST" action="/logout" style="margin:0;">
+              <button type="submit">🚪 退出登录</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="nav-content" id="nav-container"></main>
+  </div>
+
+  <script type="application/json" id="nav-data">
+[
+  {{range $i, $item := .all_items}}
+  {{if $i}},{{end}}
+  {
+    "id": {{$item.ID}},
+    "category_id": {{$item.CategoryID}},
+    "category_name": "{{$item.CategoryName}}",
+    "name": "{{$item.Name}}",
+    "url": "{{$item.URL}}",
+    "icon": "{{$item.Icon}}",
+    "icon_type": "{{$item.IconType}}",
+    "description": "{{$item.Description}}",
+    "is_public": {{if $item.IsPublic}}true{{else}}false{{end}},
+    "sort_order": {{$item.SortOrder}}
+  }
+  {{end}}
+]
+  </script>
+
+  <script src="/static/js/theme.js"></script>
+  <script src="/static/js/nav.js"></script>
+  <script>
+    (function(){
+      function updateLogo(){
+        var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        var light = document.querySelector('[data-logo-light]');
+        var darkImg = document.querySelector('[data-logo-dark]');
+        if(light && darkImg){ light.style.display = dark ? 'none' : 'block'; darkImg.style.display = dark ? 'block' : 'none'; }
+      }
+      updateLogo();
+      new MutationObserver(updateLogo).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+    })();
+  </script>
+</body>
+</html>
