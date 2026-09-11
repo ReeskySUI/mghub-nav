@@ -373,7 +373,7 @@
             '<td class="actions">' +
             '<button class="btn btn-sm btn-outline" onclick=\'editNavItem(' +
             JSON.stringify(item).replace(/'/g, "\\'") +
-            ")\">编辑</button>" +
+            ")\'>编辑</button>" +
             '<button class="btn btn-sm btn-danger" onclick="deleteNavItem(' +
             item.id +
             ", '" +
@@ -792,7 +792,7 @@
   // ========== 导航项：可见角色支持 ==========
 
   // 导航项列表：可见范围列显示
-  const visibleRoleLabels = { all: '全部', member: '成员+', admin: '仅管理员' };
+  const visibleRoleLabels = { all: '所有用户', admin: '仅管理员' };
 
   // 重写 loadNavItems 加入可见范围列
   const origLoadNavItems = loadNavItems;
@@ -810,7 +810,7 @@
         const tag = item.is_public
           ? '<span class="tag tag-public">公网</span>'
           : '<span class="tag tag-private">内网</span>';
-        const visTag = '<span class="tag tag-member">' + (visibleRoleLabels[item.visible_roles] || '全部') + '</span>';
+        const visTag = '<span class="tag tag-member">' + (visibleRoleLabels[item.visible_roles] || '所有用户') + '</span>';
         return (
           '<tr>' +
           '<td><span class="table-icon">' + iconHtml + '</span></td>' +
