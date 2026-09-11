@@ -50,10 +50,10 @@ func (h *NavHandler) Index(c *gin.Context) {
 		}
 	}
 	if wikiURL == "" {
-		wikiURL = "https://wiki.mghub.top"
+		wikiURL = "#"
 	}
 	if homeURL == "" {
-		homeURL = "https://mghub.top"
+		homeURL = "/"
 	}
 
 	categories, err := h.store.ListCategories()

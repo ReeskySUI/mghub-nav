@@ -165,7 +165,7 @@ func main() {
 	})
 
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
-	log.Printf("MGHUB Portal 启动中...")
+	log.Printf("Portal 启动中...")
 	log.Printf("  首页域: %s", cfg.Server.HomeHost)
 	log.Printf("  导航域: %s", cfg.Server.NavHost)
 	log.Printf("  监听地址: %s", addr)
@@ -224,12 +224,12 @@ func initDefaultSettings(db *store.Store, cfg *config.Config) error {
 		"site_subtitle":   cfg.Site.Subtitle,
 		"logo_text":       "M",
 		"home_badge":      cfg.Site.Subtitle + " · 小社群共建",
-		"home_hero_title": "MGHUB 一体化中心",
+		"home_hero_title": "一体化导航中心",
 		"home_hero_sub":   "以极低成本，获得稳定、可控、可自托管的数字服务",
 		"home_vision_1":   "以极低成本获得稳定、可控、可自托管的数字服务",
 		"home_vision_2":   "成员共享硬件、带宽与运维能力，避免重复造轮子",
 		"home_vision_3":   "所有服务透明可查，架构可演进、可迁移、可回溯",
-		"footer_text":     "MGHUB | 成员共建 · 架构可演进、可迁移、可回溯",
+		"footer_text":     "成员共建 · 架构可演进、可迁移、可回溯",
 		"wiki_url":        cfg.Site.WikiURL,
 		"nav_url":         cfg.Site.NavURL,
 		"home_url":        "https://" + cfg.Server.HomeHost,
