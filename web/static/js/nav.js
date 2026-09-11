@@ -1,5 +1,5 @@
 /* ============================================
-   MGHUB 导航页交互脚本
+   导航页交互脚本
    ============================================ */
 
 (function () {
@@ -8,11 +8,11 @@
   // 布局切换
   const layoutToggle = document.querySelector('.layout-toggle');
   const navContainer = document.getElementById('nav-container');
-  let currentLayout = localStorage.getItem('mghub_layout') || 'grid';
+  let currentLayout = localStorage.getItem('portal_layout') || 'grid';
 
   function setLayout(layout) {
     currentLayout = layout;
-    localStorage.setItem('mghub_layout', layout);
+    localStorage.setItem('portal_layout', layout);
 
     // 更新按钮状态
     if (layoutToggle) {
@@ -151,7 +151,7 @@
     const iconHtml = renderIcon(item);
     const tagHtml = item.is_public
       ? '<span class="tag tag-public">公网</span>'
-      : '<span class="tag tag-private">需Tailscale</span>';
+      : '<span class="tag tag-private">内网</span>';
 
     return (
       '<a href="' +
