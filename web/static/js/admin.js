@@ -301,6 +301,7 @@
     document.getElementById('nav-modal-title').textContent = '添加导航项';
     document.getElementById('icon-preview').textContent = '🔗';
     setIconType('emoji');
+    loadExistingIcons();
     openModal('nav-modal');
   });
 
@@ -348,9 +349,49 @@
       document.getElementById('icon-preview').innerHTML =
         '<img src="' + json.url + '" alt="icon">';
       showToast(json.deduped ? '图片已存在，已复用' : '图片上传成功');
+      loadExistingIcons();
     } catch (err) {
       showToast(err.message, 'error');
     }
+  });
+
+  // 加载已有上传图片，填充下拉选择
+  function loadExistingIcons() {
+    fetch('/api/uploads')
+      .then(function (res) { return res.json(); })
+      .then(function (json) {
+        var list = json.data || [];
+        var sel = document.getElementById('nav-icon-existing');
+        var current = document.getElementById('nav-icon-image').value;
+        sel.innerHTML = '<option value="">— 选择已有图片 —</option>';
+        list.forEach(function (u) {
+          var opt = document.createElement('option');
+          opt.value = '/uploads/' + u.name;
+          opt.textContent = u.name + '（' + (u.ref_count || 0) + ' 次引用）';
+          sel.appendChild(opt);
+        });
+        if (current && current.indexOf('/uploads/') === 0) {
+          sel.value = current;
+        }
+      })
+      .catch(function () {});
+  }
+
+  document.getElementById('nav-icon-existing').addEventListener('change', function () {
+    if (!this.value) return;
+    document.getElementById('nav-icon-url').value = '';
+    document.getElementById('nav-icon-image').value = this.value;
+    document.getElementById('icon-preview').innerHTML =
+      '<img src="' + this.value + '" alt="icon">';
+  });
+
+  document.getElementById('nav-icon-url').addEventListener('input', function () {
+    var v = this.value.trim();
+    if (!v) return;
+    document.getElementById('nav-icon-existing').value = '';
+    document.getElementById('nav-icon-image').value = v;
+    document.getElementById('icon-preview').innerHTML =
+      '<img src="' + v + '" alt="icon">';
   });
 
   document.getElementById('nav-form').addEventListener('submit', async function (e) {
@@ -415,6 +456,7 @@
       document.getElementById('nav-icon-emoji').value = item.icon || '';
       document.getElementById('icon-preview').textContent = item.icon || '🔗';
     }
+    loadExistingIcons();
     openModal('nav-modal');
   };
 
