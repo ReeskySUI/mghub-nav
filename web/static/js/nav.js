@@ -128,7 +128,18 @@
       return;
     }
 
-    // 按分类分组
+     // 网格模式：所有卡片混合排列为一个完整网格，卡片自带分类标签
+    if (layout === 'grid') {
+      let html = '<div class="nav-grid">';
+      items.forEach(function (item) {
+        html += renderGridCard(item);
+      });
+      html += '</div>';
+      container.innerHTML = html;
+      return;
+    }
+
+    // 列表模式：按分类分组展示
     const grouped = {};
     items.forEach(function (item) {
       const catName = item.category_name || '未分类';
@@ -148,21 +159,11 @@
         '</h2><span class="cat-count">' +
         catItems.length +
         ' 项</span></div>';
-
-      if (layout === 'grid') {
-        html += '<div class="nav-grid">';
-        catItems.forEach(function (item) {
-          html += renderGridCard(item);
-        });
-        html += '</div>';
-      } else {
-        html += '<div class="nav-list">';
-        catItems.forEach(function (item) {
-          html += renderListItem(item);
-        });
-        html += '</div>';
-      }
-
+      html += '<div class="nav-list">';
+      catItems.forEach(function (item) {
+        html += renderListItem(item);
+      });
+      html += '</div>';
       html += '</div>';
     }
 
@@ -185,6 +186,9 @@
       '<div class="card-body">' +
       '<div class="card-name">' +
       escapeHtml(item.name) +
+      '</div>' +
+      '<div class="card-cat">' +
+      escapeHtml(item.category_name || '未分类') +
       '</div>' +
       '<div class="card-desc">' +
       escapeHtml(item.description || '') +

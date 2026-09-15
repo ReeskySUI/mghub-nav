@@ -454,8 +454,11 @@
         : '🖼️';
     } else {
       document.getElementById('nav-icon-emoji').value = item.icon || '';
+      document.getElementById('nav-icon-image').value = '';
       document.getElementById('icon-preview').textContent = item.icon || '🔗';
     }
+    document.getElementById('nav-icon-url').value = '';
+    document.getElementById('nav-icon-existing').value = '';
     loadExistingIcons();
     openModal('nav-modal');
   };
@@ -1032,7 +1035,7 @@
   };
 
   const btnRefreshUploads = document.getElementById('btn-refresh-uploads');
-  if (btnRefreshUploads) btnRefreshUploads.addEventListener('click', loadUploads);
+  if (btnRefreshUploads) btnRefreshUploads.addEventListener('click', function () { showToast('已刷新'); loadUploads(); });
 
   // ========== 初始化 ==========
 
