@@ -43,6 +43,9 @@ func (h *APIHandler) ListCategories(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	if categories == nil {
+		categories = []*model.Category{}
+	}
 	c.JSON(http.StatusOK, gin.H{"data": categories})
 }
 
@@ -106,11 +109,23 @@ func (h *APIHandler) DeleteCategory(c *gin.Context) {
 
 // ListNavItems 获取导航项列表
 func (h *APIHandler) ListNavItems(c *gin.Context) {
+
 	items, err := h.store.ListNavItems()
+
 	if err != nil {
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
+
 	}
+
+	if items == nil {
+
+		items = []*model.NavItem{}
+
+	}
+
 	c.JSON(http.StatusOK, gin.H{"data": items})
 }
 
@@ -173,16 +188,38 @@ func (h *APIHandler) DeleteNavItem(c *gin.Context) {
 // SearchNavItems 搜索导航项
 func (h *APIHandler) SearchNavItems(c *gin.Context) {
 	keyword := c.Query("q")
+
 	if keyword == "" {
+
 		items, _ := h.store.ListNavItems()
+
+		if items == nil {
+
+			items = []*model.NavItem{}
+
+		}
+
 		c.JSON(http.StatusOK, gin.H{"data": items})
+
 		return
+
 	}
 	items, err := h.store.SearchNavItems(keyword)
+
 	if err != nil {
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
+
 	}
+
+	if items == nil {
+
+		items = []*model.NavItem{}
+
+	}
+
 	c.JSON(http.StatusOK, gin.H{"data": items})
 }
 
@@ -191,10 +228,21 @@ func (h *APIHandler) SearchNavItems(c *gin.Context) {
 // ListUsers 获取用户列表
 func (h *APIHandler) ListUsers(c *gin.Context) {
 	users, err := h.store.ListUsers()
+
 	if err != nil {
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
+
 	}
+
+	if users == nil {
+
+		users = []*model.User{}
+
+	}
+
 	c.JSON(http.StatusOK, gin.H{"data": users})
 }
 
@@ -540,6 +588,9 @@ func (h *APIHandler) ListUploads(c *gin.Context) {
 	entries, _ := os.ReadDir(h.cfg.Upload.Dir)
 	known := make(map[string]bool)
 	var result []uploadInfo
+
+	result = []uploadInfo{}
+
 	for _, m := range metas {
 		known[m.Filename] = true
 		// 文件可能已被手动删除
@@ -653,10 +704,21 @@ func (h *APIHandler) UpdateSettings(c *gin.Context) {
 
 func (h *APIHandler) ListVisions(c *gin.Context) {
 	visions, err := h.store.ListVisions()
+
 	if err != nil {
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
+
 	}
+
+	if visions == nil {
+
+		visions = []*model.HomeVision{}
+
+	}
+
 	c.JSON(http.StatusOK, gin.H{"data": visions})
 }
 
@@ -720,10 +782,21 @@ func (h *APIHandler) DeleteVision(c *gin.Context) {
 func (h *APIHandler) ListLinks(c *gin.Context) {
 	linkType := c.Query("type")
 	links, err := h.store.ListLinks(linkType)
+
 	if err != nil {
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
+
 	}
+
+	if links == nil {
+
+		links = []*model.SiteLink{}
+
+	}
+
 	c.JSON(http.StatusOK, gin.H{"data": links})
 }
 
@@ -789,10 +862,21 @@ func (h *APIHandler) GetUserCategories(c *gin.Context) {
 		return
 	}
 	ids, err := h.store.GetUserCategoryIDs(id)
+
 	if err != nil {
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
+
 	}
+
+	if ids == nil {
+
+		ids = []int64{}
+
+	}
+
 	c.JSON(http.StatusOK, gin.H{"data": ids})
 }
 

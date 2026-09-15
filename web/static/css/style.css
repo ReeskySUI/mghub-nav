@@ -98,7 +98,7 @@
 }
 
 [data-theme="dark"] .nav-cat-filter {
-  background: #2e1a14;
+  background-color: #2e1a14;
   border-color: #5c4a42;
   color: #F6E0C9;
 }
@@ -727,23 +727,40 @@ a:hover {
 
 .nav-cat-filter {
   flex-shrink: 0;
-  padding: 8px 10px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 9px 34px 9px 16px;
   border: 1.5px solid var(--border);
   border-radius: 24px;
   font-size: 0.85rem;
-  background: var(--border-light);
+  background: var(--border-light)
+    url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%230175CB' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    no-repeat right 14px center;
   color: var(--text-secondary);
   cursor: pointer;
   transition: var(--transition);
-  max-width: 160px;
+  max-width: 170px;
   font-family: inherit;
+}
+
+.nav-cat-filter:hover {
+  border-color: var(--primary);
+  background-color: var(--white);
 }
 
 .nav-cat-filter:focus {
   outline: none;
   border-color: var(--primary);
-  background: var(--white);
+  background-color: var(--white);
   box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.nav-cat-filter option {
+  padding: 8px 12px;
+  background: var(--white);
+  color: var(--text);
+  font-size: 0.85rem;
 }
 
 .nav-actions {
