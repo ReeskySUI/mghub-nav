@@ -52,6 +52,7 @@
 
   // 搜索功能
   const searchInput = document.getElementById('search-input');
+  const categoryFilter = document.getElementById('category-filter');
   let currentItems = [];
   let searchTimeout = null;
 
@@ -65,7 +66,56 @@
         currentItems = [];
       }
     }
+    buildCategoryFilter();
     renderNavItems(currentItems, currentLayout);
+  }
+
+  // 从导航项中动态提取分类列表，填充筛选下拉
+  function buildCategoryFilter() {
+    if (!categoryFilter) return;
+    const cats = [];
+    const seen = {};
+    currentItems.forEach(function (item) {
+      const cid = item.category_id;
+      if (cid !== undefined && cid !== null && !seen[cid]) {
+        seen[cid] = true;
+        cats.push({ id: cid, name: item.category_name || '未分类' });
+      }
+    });
+    categoryFilter.innerHTML =
+      '<option value="">全部分类</option>' +
+      cats
+        .map(function (c) {
+          return '<option value="' + c.id + '">' + escapeHtml(c.name) + '</option>';
+        })
+        .join('');
+  }
+
+  // 组合应用搜索关键词 + 分类筛选
+  function applyFilter() {
+    const keyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    const catId = categoryFilter ? categoryFilter.value : '';
+
+    let list = currentItems;
+
+    if (catId) {
+      list = list.filter(function (item) {
+        return String(item.category_id) === catId;
+      });
+    }
+
+    if (keyword) {
+      list = list.filter(function (item) {
+        return (
+          item.name.toLowerCase().includes(keyword) ||
+          (item.description && item.description.toLowerCase().includes(keyword)) ||
+          item.url.toLowerCase().includes(keyword) ||
+          (item.category_name && item.category_name.toLowerCase().includes(keyword))
+        );
+      });
+    }
+
+    renderNavItems(list, currentLayout);
   }
 
   function renderNavItems(items, layout) {
@@ -193,29 +243,10 @@
   // 搜索
   if (searchInput) {
     searchInput.addEventListener('input', function () {
-      const keyword = searchInput.value.trim().toLowerCase();
-
       if (searchTimeout) {
         clearTimeout(searchTimeout);
       }
-
-      searchTimeout = setTimeout(function () {
-        if (!keyword) {
-          renderNavItems(currentItems, currentLayout);
-          return;
-        }
-
-        const filtered = currentItems.filter(function (item) {
-          return (
-            item.name.toLowerCase().includes(keyword) ||
-            (item.description && item.description.toLowerCase().includes(keyword)) ||
-            item.url.toLowerCase().includes(keyword) ||
-            (item.category_name && item.category_name.toLowerCase().includes(keyword))
-          );
-        });
-
-        renderNavItems(filtered, currentLayout);
-      }, 200);
+      searchTimeout = setTimeout(applyFilter, 200);
     });
 
     // 快捷键 Ctrl+K / Cmd+K 聚焦搜索
@@ -226,10 +257,15 @@
       }
       if (e.key === 'Escape' && document.activeElement === searchInput) {
         searchInput.value = '';
-        renderNavItems(currentItems, currentLayout);
+        applyFilter();
         searchInput.blur();
       }
     });
+  }
+
+  // 分类筛选
+  if (categoryFilter) {
+    categoryFilter.addEventListener('change', applyFilter);
   }
 
   // 初始化

@@ -139,6 +139,10 @@ func main() {
 		apiGroup.POST("/change-password", apiHandler.ChangePassword)
 		apiGroup.POST("/upload", middleware.AdminRequired(), apiHandler.UploadImage)
 
+		// 上传图片管理
+		apiGroup.GET("/uploads", middleware.AdminRequired(), apiHandler.ListUploads)
+		apiGroup.DELETE("/uploads/:name", middleware.AdminRequired(), apiHandler.DeleteUpload)
+
 		// 站点设置
 		apiGroup.GET("/settings", apiHandler.GetSettings)
 		apiGroup.POST("/settings", middleware.AdminRequired(), apiHandler.UpdateSettings)

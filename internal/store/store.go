@@ -118,6 +118,14 @@ func (s *Store) migrate() error {
 		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
 		FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
 	);
+
+	CREATE TABLE IF NOT EXISTS uploads_meta (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		hash TEXT NOT NULL UNIQUE,
+		filename TEXT NOT NULL,
+		size INTEGER NOT NULL DEFAULT 0,
+		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+	);
 	`
 	_, err := s.db.Exec(schema)
 	if err != nil {
@@ -657,4 +665,52 @@ func (s *Store) UpdateUserCategories(userID int64, categoryIDs []int64) error {
 		}
 	}
 	return tx.Commit()
+}
+
+// ==================== 上传图片元数据 ====================
+
+// FindUploadByHash 根据内容哈希查找已存在的上传文件（不存在返回空字符串）
+func (s *Store) FindUploadByHash(hash string) (string, error) {
+	var filename string
+	err := s.db.QueryRow(`SELECT filename FROM uploads_meta WHERE hash = ?`, hash).Scan(&filename)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", nil
+		}
+		return "", err
+	}
+	return filename, nil
+}
+
+// RegisterUpload 记录上传文件元数据（重复 hash 自动忽略）
+func (s *Store) RegisterUpload(hash, filename string, size int64) error {
+	_, err := s.db.Exec(
+		`INSERT OR IGNORE INTO uploads_meta (hash, filename, size) VALUES (?, ?, ?)`,
+		hash, filename, size,
+	)
+	return err
+}
+
+// ListUploads 列出全部上传文件元数据
+func (s *Store) ListUploads() ([]*model.UploadMeta, error) {
+	rows, err := s.db.Query(`SELECT hash, filename, size, created_at FROM uploads_meta ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var list []*model.UploadMeta
+	for rows.Next() {
+		var m model.UploadMeta
+		if err := rows.Scan(&m.Hash, &m.Filename, &m.Size, &m.CreatedAt); err != nil {
+			return nil, err
+		}
+		list = append(list, &m)
+	}
+	return list, rows.Err()
+}
+
+// DeleteUploadMeta 删除上传文件元数据记录
+func (s *Store) DeleteUploadMeta(filename string) error {
+	_, err := s.db.Exec(`DELETE FROM uploads_meta WHERE filename = ?`, filename)
+	return err
 }

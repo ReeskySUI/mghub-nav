@@ -72,6 +72,54 @@
     });
   });
 
+  // ========== 表格排序 / 筛选 / 搜索 ==========
+
+  // 表格状态：category / nav 两张表
+  const tableState = {
+    category: { search: '', sortKey: null, sortDir: 1 },
+    nav: { search: '', category: '', sortKey: null, sortDir: 1 },
+  };
+
+  function compareValues(a, b, key) {
+    const va = a[key];
+    const vb = b[key];
+    if (va === vb) return 0;
+    if (va === null || va === undefined || va === '') return -1;
+    if (vb === null || vb === undefined || vb === '') return 1;
+    if (typeof va === 'number' && typeof vb === 'number') return va - vb;
+    if (typeof va === 'boolean') return (va ? 1 : 0) - (vb ? 1 : 0);
+    return String(va).localeCompare(String(vb), 'zh-CN');
+  }
+
+  // 给表格可排序列绑定点击事件
+  function setupTableSort(tableId, stateKey) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    table.querySelectorAll('th.sortable').forEach(function (th) {
+      th.addEventListener('click', function () {
+        const key = th.dataset.sort;
+        const state = tableState[stateKey];
+        if (state.sortKey === key) {
+          state.sortDir = -state.sortDir;
+        } else {
+          state.sortKey = key;
+          state.sortDir = 1;
+        }
+        // 更新排序指示
+        table.querySelectorAll('th.sortable .sort-indicator').forEach(function (ind) {
+          ind.textContent = '';
+        });
+        const ind = th.querySelector('.sort-indicator');
+        if (ind) ind.textContent = state.sortDir === 1 ? '↑' : '↓';
+        if (stateKey === 'category') {
+          renderCategories();
+        } else {
+          renderNavTable();
+        }
+      });
+    });
+  }
+
   // ========== 侧边栏切换 ==========
 
   document.querySelectorAll('.admin-nav-item').forEach(function (item) {
@@ -148,50 +196,98 @@
   async function loadCategories() {
     try {
       const res = await api('/api/categories');
-      const tbody = document.querySelector('#category-table tbody');
-      tbody.innerHTML = res.data
-        .map(function (cat) {
-          return (
-            '<tr>' +
-            '<td><span class="table-icon">' +
-            escapeHtml(cat.icon || '📁') +
-            '</span></td>' +
-            '<td>' +
-            escapeHtml(cat.name) +
-            '</td>' +
-            '<td>' +
-            cat.sort_order +
-            '</td>' +
-            '<td class="actions">' +
-            '<button class="btn btn-sm btn-outline" onclick="editCategory(' +
-            cat.id +
-            ", '" +
-            escapeHtml(cat.name) +
-            "', '" +
-            escapeHtml(cat.icon || '') +
-            "', " +
-            cat.sort_order +
-            ')">编辑</button>' +
-            '<button class="btn btn-sm btn-danger" onclick="deleteCategory(' +
-            cat.id +
-            ", '" +
-            escapeHtml(cat.name) +
-            "')">删除</button>" +
-            '</td></tr>'
-          );
-        })
-        .join('');
+      window.categoriesData = res.data || [];
 
       // 更新导航项表单中的分类下拉
       const select = document.getElementById('nav-category');
-      select.innerHTML = res.data
+      select.innerHTML = window.categoriesData
         .map(function (cat) {
           return '<option value="' + cat.id + '">' + escapeHtml(cat.name) + '</option>';
         })
         .join('');
+
+      // 更新导航管理表格的分类筛选下拉
+      const filter = document.getElementById('nav-category-filter');
+      if (filter) {
+        const current = tableState.nav.category;
+        filter.innerHTML =
+          '<option value="">全部分类</option>' +
+          window.categoriesData
+            .map(function (cat) {
+              return '<option value="' + cat.id + '">' + escapeHtml(cat.name) + '</option>';
+            })
+            .join('');
+        filter.value = current;
+      }
+
+      renderCategories();
     } catch (err) {
       console.error('加载分类失败:', err);
     }
+  }
+
+  function renderCategories() {
+    const tbody = document.querySelector('#category-table tbody');
+    let list = (window.categoriesData || []).slice();
+
+    // 搜索
+    const kw = tableState.category.search.toLowerCase();
+    if (kw) {
+      list = list.filter(function (cat) {
+        return (cat.name || '').toLowerCase().includes(kw);
+      });
+    }
+
+    // 排序
+    if (tableState.category.sortKey) {
+      const key = tableState.category.sortKey;
+      const dir = tableState.category.sortDir;
+      list.sort(function (a, b) {
+        return compareValues(a, b, key) * dir;
+      });
+    }
+
+    tbody.innerHTML = list
+      .map(function (cat) {
+        return (
+          '<tr>' +
+          '<td><span class="table-icon">' +
+          escapeHtml(cat.icon || '📁') +
+          '</span></td>' +
+          '<td>' +
+          escapeHtml(cat.name) +
+          '</td>' +
+          '<td>' +
+          cat.sort_order +
+          '</td>' +
+          '<td class="actions">' +
+          '<button class="btn btn-sm btn-outline" onclick="editCategory(' +
+          cat.id +
+          ", '" +
+          escapeHtml(cat.name) +
+          "', '" +
+          escapeHtml(cat.icon || '') +
+          "', " +
+          cat.sort_order +
+          ')">编辑</button>' +
+          '<button class="btn btn-sm btn-danger" onclick="deleteCategory(' +
+          cat.id +
+          ", '" +
+          escapeHtml(cat.name) +
+          "')\">删除</button>" +
+          '</td></tr>'
+        );
+      })
+      .join('');
+  }
+
+  // 分类搜索
+  const categorySearch = document.getElementById('category-search');
+  if (categorySearch) {
+    categorySearch.addEventListener('input', function () {
+      tableState.category.search = this.value.trim();
+      renderCategories();
+    });
   }
 
   // ========== 导航项管理 ==========
@@ -251,7 +347,7 @@
       document.getElementById('nav-icon-image').value = json.url;
       document.getElementById('icon-preview').innerHTML =
         '<img src="' + json.url + '" alt="icon">';
-      showToast('图片上传成功');
+      showToast(json.deduped ? '图片已存在，已复用' : '图片上传成功');
     } catch (err) {
       showToast(err.message, 'error');
     }
@@ -335,57 +431,103 @@
     }
   };
 
+  // 导航项可见范围显示
+  const visibleRoleLabels = { all: '所有用户', admin: '仅管理员' };
+
   async function loadNavItems() {
     try {
       const res = await api('/api/nav-items');
-      const tbody = document.querySelector('#nav-table tbody');
-      tbody.innerHTML = res.data
-        .map(function (item) {
-          const iconHtml =
-            item.icon_type === 'image' && item.icon
-              ? '<img src="' + item.icon + '" alt="">'
-              : escapeHtml(item.icon || '🔗');
-          const tag = item.is_public
-            ? '<span class="tag tag-public">公网</span>'
-            : '<span class="tag tag-private">内网</span>';
-          return (
-            '<tr>' +
-            '<td><span class="table-icon">' +
-            iconHtml +
-            '</span></td>' +
-            '<td>' +
-            escapeHtml(item.name) +
-            '</td>' +
-            '<td>' +
-            escapeHtml(item.category_name || '-') +
-            '</td>' +
-            '<td><a href="' +
-            escapeHtml(item.url) +
-            '" target="_blank" rel="noopener">' +
-            escapeHtml(item.url) +
-            '</a></td>' +
-            '<td>' +
-            tag +
-            '</td>' +
-            '<td>' +
-            item.sort_order +
-            '</td>' +
-            '<td class="actions">' +
-            '<button class="btn btn-sm btn-outline" onclick=\'editNavItem(' +
-            JSON.stringify(item).replace(/'/g, "\\'") +
-            ")\'>编辑</button>" +
-            '<button class="btn btn-sm btn-danger" onclick="deleteNavItem(' +
-            item.id +
-            ", '" +
-            escapeHtml(item.name) +
-            "')">删除</button>" +
-            '</td></tr>'
-          );
-        })
-        .join('');
+      // 存储数据供编辑与筛选使用
+      window.navItemsData = {};
+      res.data.forEach(function (item) { window.navItemsData[item.id] = item; });
+      window.navItemsList = res.data;
+      renderNavTable();
     } catch (err) {
       console.error('加载导航项失败:', err);
     }
+  }
+
+  function renderNavTable() {
+    const tbody = document.querySelector('#nav-table tbody');
+    let list = (window.navItemsList || []).slice();
+
+    // 分类筛选
+    const catId = tableState.nav.category;
+    if (catId) {
+      list = list.filter(function (item) {
+        return String(item.category_id) === catId;
+      });
+    }
+
+    // 搜索
+    const kw = tableState.nav.search.toLowerCase();
+    if (kw) {
+      list = list.filter(function (item) {
+        return (
+          (item.name || '').toLowerCase().includes(kw) ||
+          (item.url || '').toLowerCase().includes(kw) ||
+          (item.description || '').toLowerCase().includes(kw) ||
+          (item.category_name || '').toLowerCase().includes(kw)
+        );
+      });
+    }
+
+    // 排序
+    if (tableState.nav.sortKey) {
+      const key = tableState.nav.sortKey;
+      const dir = tableState.nav.sortDir;
+      list.sort(function (a, b) {
+        return compareValues(a, b, key) * dir;
+      });
+    }
+
+    tbody.innerHTML = list
+      .map(function (item) {
+        const iconHtml =
+          item.icon_type === 'image' && item.icon
+            ? '<img src="' + item.icon + '" alt="">'
+            : escapeHtml(item.icon || '🔗');
+        const tag = item.is_public
+          ? '<span class="tag tag-public">公网</span>'
+          : '<span class="tag tag-private">内网</span>';
+        const visTag =
+          '<span class="tag tag-member">' +
+          (visibleRoleLabels[item.visible_roles] || '所有用户') +
+          '</span>';
+        return (
+          '<tr>' +
+          '<td><span class="table-icon">' + iconHtml + '</span></td>' +
+          '<td>' + escapeHtml(item.name) + '</td>' +
+          '<td>' + escapeHtml(item.category_name || '-') + '</td>' +
+          '<td><a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener">' + escapeHtml(item.url) + '</a></td>' +
+          '<td>' + tag + '</td>' +
+          '<td>' + visTag + '</td>' +
+          '<td>' + item.sort_order + '</td>' +
+          '<td class="actions">' +
+          '<button class="btn btn-sm btn-outline" onclick="editNavItem(' + item.id + ')">编辑</button>' +
+          '<button class="btn btn-sm btn-danger" onclick="deleteNavItem(' + item.id + ')">删除</button>' +
+          '</td></tr>'
+        );
+      })
+      .join('');
+  }
+
+  // 导航搜索
+  const navSearch = document.getElementById('nav-search');
+  if (navSearch) {
+    navSearch.addEventListener('input', function () {
+      tableState.nav.search = this.value.trim();
+      renderNavTable();
+    });
+  }
+
+  // 导航分类筛选
+  const navCatFilter = document.getElementById('nav-category-filter');
+  if (navCatFilter) {
+    navCatFilter.addEventListener('change', function () {
+      tableState.nav.category = this.value;
+      renderNavTable();
+    });
   }
 
   // ========== 用户管理（超管） ==========
@@ -410,37 +552,37 @@
   const userForm = document.getElementById('user-form');
   if (userForm) {
     userForm.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    const data = {
-      username: document.getElementById('user-username').value.trim(),
-      role: document.getElementById('user-role').value,
-    };
+      e.preventDefault();
+      const data = {
+        username: document.getElementById('user-username').value.trim(),
+        role: document.getElementById('user-role').value,
+      };
 
-    try {
-      if (editingUserId) {
-        await api('/api/users/' + editingUserId, 'PUT', data);
-        // 保存分类权限
-        const categoryIDs = [];
-        document.querySelectorAll('#user-categories-list input[type="checkbox"]:checked').forEach(function (cb) {
-          categoryIDs.push(parseInt(cb.value));
-        });
-        await api('/api/users/' + editingUserId + '/categories', 'PUT', { category_ids: categoryIDs });
-        showToast('用户更新成功');
-      } else {
-        data.password = document.getElementById('user-password').value;
-        if (!data.password || data.password.length < 6) {
-          showToast('密码至少6位', 'error');
-          return;
+      try {
+        if (editingUserId) {
+          await api('/api/users/' + editingUserId, 'PUT', data);
+          // 保存分类权限
+          const categoryIDs = [];
+          document.querySelectorAll('#user-categories-list input[type="checkbox"]:checked').forEach(function (cb) {
+            categoryIDs.push(parseInt(cb.value));
+          });
+          await api('/api/users/' + editingUserId + '/categories', 'PUT', { category_ids: categoryIDs });
+          showToast('用户更新成功');
+        } else {
+          data.password = document.getElementById('user-password').value;
+          if (!data.password || data.password.length < 6) {
+            showToast('密码至少6位', 'error');
+            return;
+          }
+          await api('/api/users', 'POST', data);
+          showToast('用户添加成功');
         }
-        await api('/api/users', 'POST', data);
-        showToast('用户添加成功');
+        closeModal('user-modal');
+        loadUsers();
+      } catch (err) {
+        showToast(err.message, 'error');
       }
-      closeModal('user-modal');
-      loadUsers();
-    } catch (err) {
-      showToast(err.message, 'error');
-    }
-  });
+    });
   }
 
   window.editUser = async function (id) {
@@ -616,7 +758,7 @@
         if (!res.ok) throw new Error(json.error || '上传失败');
         document.getElementById(hiddenInputId).value = json.url;
         document.getElementById(previewId).innerHTML = '<img src="' + json.url + '">';
-        showToast('上传成功');
+        showToast(json.deduped ? '图片已存在，已复用' : '上传成功');
       } catch (err) {
         showToast(err.message, 'error');
       }
@@ -695,7 +837,7 @@
           '<div style="font-size:0.75rem;color:var(--text-muted);flex-shrink:0;">排序:' + v.sort_order + '</div>' +
           '<div class="item-actions">' +
           '<button class="btn btn-sm btn-outline" onclick="editVision(' + v.id + ", '" + escapeHtml(v.content).replace(/'/g, "\\'") + "', " + v.sort_order + ')">编辑</button>' +
-          '<button class="btn btn-sm btn-danger" onclick="deleteVision(' + v.id + ", '" + escapeHtml(v.content).replace(/'/g, "\\'") + "')">删除</button>' +
+          '<button class="btn btn-sm btn-danger" onclick="deleteVision(' + v.id + ", '" + escapeHtml(v.content).replace(/'/g, "\\'") + "')\">删除</button>" +
           '</div></div>'
         );
       }).join('');
@@ -741,7 +883,10 @@
     }
   });
 
-  window.editLink = function (link) {
+  // 编辑链接：通过 ID 从缓存取数据，避免 JSON 序列化放入 onclick 的转义问题
+  window.editLink = function (id) {
+    const link = window.linksData ? window.linksData[id] : null;
+    if (!link) { showToast('链接数据不存在', 'error'); return; }
     editingLinkId = link.id;
     document.getElementById('link-name').value = link.name;
     document.getElementById('link-url').value = link.url;
@@ -752,7 +897,9 @@
     openModal('link-modal');
   };
 
-  window.deleteLink = async function (id, name) {
+  window.deleteLink = async function (id) {
+    const link = window.linksData ? window.linksData[id] : null;
+    const name = link ? link.name : '';
     if (!confirm('确定删除链接 "' + name + '" 吗？')) return;
     try {
       await api('/api/links/' + id, 'DELETE');
@@ -766,6 +913,9 @@
   async function loadLinks() {
     try {
       const res = await api('/api/links');
+      // 存储数据供编辑使用
+      window.linksData = {};
+      res.data.forEach(function (l) { window.linksData[l.id] = l; });
       const list = document.getElementById('link-list');
       if (!res.data || res.data.length === 0) {
         list.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;padding:12px;">暂无链接，点击上方"添加链接"按钮添加</div>';
@@ -779,8 +929,8 @@
           '<div class="item-url">' + escapeHtml(l.url) + '</div>' +
           '<span class="tag tag-member" style="flex-shrink:0;">' + (linkTypeLabels[l.link_type] || l.link_type) + '</span>' +
           '<div class="item-actions">' +
-          '<button class="btn btn-sm btn-outline" onclick=\'editLink(' + JSON.stringify(l).replace(/'/g, "\\'") + ")\'>编辑</button>" +
-          '<button class="btn btn-sm btn-danger" onclick="deleteLink(' + l.id + ", '" + escapeHtml(l.name).replace(/'/g, "\\'") + "')">删除</button>" +
+          '<button class="btn btn-sm btn-outline" onclick="editLink(' + l.id + ')">编辑</button>' +
+          '<button class="btn btn-sm btn-danger" onclick="deleteLink(' + l.id + ')">删除</button>' +
           '</div></div>'
         );
       }).join('');
@@ -789,53 +939,68 @@
     }
   }
 
-  // ========== 导航项：可见角色支持 ==========
+  // ========== 图片管理 ==========
 
-  // 导航项列表：可见范围列显示
-  const visibleRoleLabels = { all: '所有用户', admin: '仅管理员' };
-
-  // 重写 loadNavItems 加入可见范围列
-  const origLoadNavItems = loadNavItems;
-  loadNavItems = async function () {
+  async function loadUploads() {
+    const list = document.getElementById('upload-list');
+    if (!list) return;
     try {
-      const res = await api('/api/nav-items');
-      // 存储数据供编辑使用
-      window.navItemsData = {};
-      res.data.forEach(function (item) { window.navItemsData[item.id] = item; });
-      const tbody = document.querySelector('#nav-table tbody');
-      tbody.innerHTML = res.data.map(function (item) {
-        const iconHtml = item.icon_type === 'image' && item.icon
-          ? '<img src="' + item.icon + '" alt="">'
-          : escapeHtml(item.icon || '🔗');
-        const tag = item.is_public
-          ? '<span class="tag tag-public">公网</span>'
-          : '<span class="tag tag-private">内网</span>';
-        const visTag = '<span class="tag tag-member">' + (visibleRoleLabels[item.visible_roles] || '所有用户') + '</span>';
+      const res = await api('/api/uploads');
+      if (!res.data || res.data.length === 0) {
+        list.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;padding:12px;">暂无上传图片，可在导航项图标、Logo 或 Favicon 中上传</div>';
+        return;
+      }
+      list.innerHTML = res.data.map(function (u) {
+        const size = u.size >= 1048576
+          ? (u.size / 1048576).toFixed(1) + ' MB'
+          : (u.size >= 1024 ? Math.round(u.size / 1024) + ' KB' : u.size + ' B');
+        const time = u.created_at ? new Date(u.created_at).toLocaleString() : '';
+        const refTag = u.ref_count > 0
+          ? '<span class="tag tag-public">被引用 ' + u.ref_count + ' 处</span>'
+          : '<span class="tag tag-member">未引用</span>';
+        const delBtn = u.ref_count > 0
+          ? '<button class="btn btn-sm btn-ghost" disabled title="该图片正被引用，无法删除">删除</button>'
+          : '<button class="btn btn-sm btn-danger" onclick="deleteUpload(\'' + u.name.replace(/'/g, "\\'") + '\')">删除</button>';
         return (
-          '<tr>' +
-          '<td><span class="table-icon">' + iconHtml + '</span></td>' +
-          '<td>' + escapeHtml(item.name) + '</td>' +
-          '<td>' + escapeHtml(item.category_name || '-') + '</td>' +
-          '<td><a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener">' + escapeHtml(item.url) + '</a></td>' +
-          '<td>' + tag + '</td>' +
-          '<td>' + visTag + '</td>' +
-          '<td>' + item.sort_order + '</td>' +
-          '<td class="actions">' +
-          '<button class="btn btn-sm btn-outline" onclick="editNavItem(' + item.id + ')">编辑</button>' +
-          '<button class="btn btn-sm btn-danger" onclick="deleteNavItem(' + item.id + ')">删除</button>' +
-          '</td></tr>'
+          '<div class="upload-item">' +
+          '<div class="upload-thumb"><img src="/uploads/' + encodeURIComponent(u.name) + '" alt=""></div>' +
+          '<div class="upload-info">' +
+          '<div class="upload-name">' + escapeHtml(u.name) + '</div>' +
+          '<div class="upload-meta">' + size + (time ? ' · ' + time : '') + '</div>' +
+          '</div>' +
+          refTag +
+          delBtn +
+          '</div>'
         );
       }).join('');
     } catch (err) {
-      console.error('加载导航项失败:', err);
+      list.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;padding:12px;">加载失败: ' + escapeHtml(err.message) + '</div>';
+    }
+  }
+
+  window.deleteUpload = async function (name) {
+    if (!confirm('确定删除图片 "' + name + '" 吗？此操作不可恢复。')) return;
+    try {
+      await api('/api/uploads/' + encodeURIComponent(name), 'DELETE');
+      showToast('图片删除成功');
+      loadUploads();
+    } catch (err) {
+      showToast(err.message, 'error');
     }
   };
 
+  const btnRefreshUploads = document.getElementById('btn-refresh-uploads');
+  if (btnRefreshUploads) btnRefreshUploads.addEventListener('click', loadUploads);
+
   // ========== 初始化 ==========
+
+  setupTableSort('category-table', 'category');
+  setupTableSort('nav-table', 'nav');
 
   loadCategories();
   loadNavItems();
   if (document.getElementById('user-table')) { loadUsers(); }
   if (document.getElementById('vision-list')) { loadVisions(); }
   if (document.getElementById('link-list')) { loadLinks(); }
+  if (document.getElementById('upload-list')) { loadUploads(); }
 })();

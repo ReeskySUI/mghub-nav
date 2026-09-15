@@ -123,3 +123,11 @@ type UserCategory struct {
 	UserID     int64 `json:"user_id"`
 	CategoryID int64 `json:"category_id"`
 }
+
+// UploadMeta 上传图片元数据（用于去重与空间管理）
+type UploadMeta struct {
+	Hash      string    `json:"hash"`
+	Filename  string    `json:"filename"`
+	Size      int64     `json:"size"`
+	CreatedAt time.Time `json:"created_at"`
+}

@@ -97,6 +97,17 @@
   color: #F6E0C9;
 }
 
+[data-theme="dark"] .nav-cat-filter {
+  background: #2e1a14;
+  border-color: #5c4a42;
+  color: #F6E0C9;
+}
+
+[data-theme="dark"] .nav-cat-filter:focus {
+  background: #3a2218;
+  border-color: #F6E0C9;
+}
+
 [data-theme="dark"] .nav-card,
 [data-theme="dark"] .nav-list-item {
   background: #3a2218;
@@ -675,9 +686,17 @@ a:hover {
 
 .nav-search {
   flex: 1;
-  max-width: 480px;
+  max-width: 560px;
   margin: 0 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-search .search-box {
+  flex: 1;
   position: relative;
+  min-width: 0;
 }
 
 .nav-search input {
@@ -704,6 +723,27 @@ a:hover {
   transform: translateY(-50%);
   color: var(--text-muted);
   font-size: 0.9rem;
+}
+
+.nav-cat-filter {
+  flex-shrink: 0;
+  padding: 8px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 24px;
+  font-size: 0.85rem;
+  background: var(--border-light);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  max-width: 160px;
+  font-family: inherit;
+}
+
+.nav-cat-filter:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--white);
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 .nav-actions {
@@ -1310,6 +1350,118 @@ a:hover {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* 表格工具栏（搜索/筛选） */
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.table-search {
+  flex: 1;
+  min-width: 200px;
+  max-width: 340px;
+}
+
+.table-filter {
+  width: auto;
+  min-width: 140px;
+}
+
+.form-input-sm {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+
+/* 可排序表头 */
+.admin-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.admin-table th.sortable:hover {
+  background: var(--primary-light);
+}
+
+.sort-indicator {
+  display: inline-block;
+  width: 14px;
+  color: var(--accent);
+  font-size: 0.75rem;
+  margin-left: 2px;
+  font-weight: 700;
+}
+
+/* 图片管理 */
+.upload-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.upload-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--border-light);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.upload-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--white);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-thumb img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.upload-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.upload-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
+  word-break: break-all;
+}
+
+.upload-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .upload-item {
+  background: #3a2218;
+  border-color: #4a3a34;
+}
+
+[data-theme="dark"] .upload-thumb {
+  background: #2e1a14;
+  border-color: #5c4a42;
+}
+
+[data-theme="dark"] .upload-name {
+  color: #F6E0C9;
 }
 
 /* 模态框 */

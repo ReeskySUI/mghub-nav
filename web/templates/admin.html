@@ -41,6 +41,7 @@
       <div class="admin-nav-item" data-target="section-categories"><span>📁</span> 分类管理</div>
       <div class="admin-nav-item" data-target="section-nav"><span>🔗</span> 导航管理</div>
       <div class="admin-nav-item" data-target="section-settings"><span>⚙️</span> 站点设置</div>
+      <div class="admin-nav-item" data-target="section-uploads"><span>🖼️</span> 图片管理</div>
       {{if .is_super_admin}}
       <div class="admin-nav-item" data-target="section-users"><span>👥</span> 用户管理</div>
       {{end}}
@@ -76,8 +77,16 @@
           <h2>分类管理</h2>
           <button class="btn btn-primary btn-sm" id="btn-add-category">+ 添加分类</button>
         </div>
+        <div class="table-toolbar">
+          <input type="text" id="category-search" class="form-input form-input-sm table-search" placeholder="搜索分类名称...">
+        </div>
         <table class="admin-table" id="category-table">
-          <thead><tr><th style="width:60px;">图标</th><th>分类名称</th><th style="width:80px;">排序</th><th style="width:160px;">操作</th></tr></thead>
+          <thead><tr>
+            <th style="width:60px;">图标</th>
+            <th data-sort="name" class="sortable">分类名称 <span class="sort-indicator"></span></th>
+            <th style="width:80px;" data-sort="sort_order" class="sortable">排序 <span class="sort-indicator"></span></th>
+            <th style="width:160px;">操作</th>
+          </tr></thead>
           <tbody></tbody>
         </table>
       </section>
@@ -88,11 +97,23 @@
           <h2>导航管理</h2>
           <button class="btn btn-primary btn-sm" id="btn-add-nav">+ 添加导航项</button>
         </div>
+        <div class="table-toolbar">
+          <input type="text" id="nav-search" class="form-input form-input-sm table-search" placeholder="搜索名称、URL、描述...">
+          <select id="nav-category-filter" class="form-select form-input-sm table-filter">
+            <option value="">全部分类</option>
+          </select>
+        </div>
         <div style="overflow-x:auto;">
           <table class="admin-table" id="nav-table">
             <thead><tr>
-              <th style="width:50px;">图标</th><th>名称</th><th>分类</th><th>URL</th>
-              <th style="width:80px;">类型</th><th style="width:90px;">可见范围</th><th style="width:60px;">排序</th><th style="width:180px;">操作</th>
+              <th style="width:50px;">图标</th>
+              <th data-sort="name" class="sortable">名称 <span class="sort-indicator"></span></th>
+              <th data-sort="category_name" class="sortable">分类 <span class="sort-indicator"></span></th>
+              <th>URL</th>
+              <th style="width:80px;" data-sort="is_public" class="sortable">类型 <span class="sort-indicator"></span></th>
+              <th style="width:90px;" data-sort="visible_roles" class="sortable">可见范围 <span class="sort-indicator"></span></th>
+              <th style="width:60px;" data-sort="sort_order" class="sortable">排序 <span class="sort-indicator"></span></th>
+              <th style="width:180px;">操作</th>
             </tr></thead>
             <tbody></tbody>
           </table>
@@ -194,6 +215,16 @@
         </div>
       </section>
       {{end}}
+
+      <!-- 图片管理 -->
+      <section class="admin-section" id="section-uploads" style="display:none;">
+        <div class="admin-section-header">
+          <h2>图片管理</h2>
+          <button class="btn btn-outline btn-sm" id="btn-refresh-uploads">↻ 刷新</button>
+        </div>
+        <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:16px;">管理上传的图标图片（Logo、Favicon、导航项图标）。相同图片上传时自动去重，只保存一份；被引用的图片需先解除引用才能删除。</p>
+        <div class="upload-manager" id="upload-list"></div>
+      </section>
     </main>
   </div>
 

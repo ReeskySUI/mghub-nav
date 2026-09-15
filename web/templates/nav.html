@@ -24,8 +24,13 @@
       </a>
 
       <div class="nav-search">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="search-input" placeholder="搜索服务名称、描述或地址... (Ctrl+K)" autocomplete="off">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" placeholder="搜索服务名称、描述或地址... (Ctrl+K)" autocomplete="off">
+        </div>
+        <select id="category-filter" class="nav-cat-filter" title="按分类筛选">
+          <option value="">全部分类</option>
+        </select>
       </div>
 
       <div class="nav-actions">

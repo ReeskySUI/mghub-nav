@@ -1,7 +1,11 @@
 package handler
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -363,9 +367,9 @@ func (h *APIHandler) ChangePassword(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "密码修改成功"})
 }
 
-// ==================== 图片上传 ====================
+// ==================== 图片上传与空间管理 ====================
 
-// UploadImage 上传图标图片
+// UploadImage 上传图标图片（内容哈希去重，相同图片只保存一份）
 func (h *APIHandler) UploadImage(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -380,7 +384,7 @@ func (h *APIHandler) UploadImage(c *gin.Context) {
 		return
 	}
 
-	// 检查文件类型
+	// 读取文件内容（同时用于类型判断和哈希去重）
 	src, err := file.Open()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "文件打开失败"})
@@ -388,10 +392,14 @@ func (h *APIHandler) UploadImage(c *gin.Context) {
 	}
 	defer src.Close()
 
-	// 读取文件头判断类型
-	buf := make([]byte, 512)
-	n, _ := src.Read(buf)
-	contentType := http.DetectContentType(buf[:n])
+	data, err := io.ReadAll(src)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "文件读取失败"})
+		return
+	}
+
+	// 检查文件类型
+	contentType := http.DetectContentType(data)
 	allowed := false
 	for _, t := range h.cfg.Upload.AllowedTypes {
 		if strings.HasPrefix(contentType, t) || contentType == t {
@@ -402,7 +410,7 @@ func (h *APIHandler) UploadImage(c *gin.Context) {
 	// 扩展名兜底判断（SVG 等文本格式 DetectContentType 可能检测为 text/xml）
 	if !allowed {
 		ext := strings.ToLower(filepath.Ext(file.Filename))
-		if ext == ".svg" || ext == ".webp" || ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".gif" {
+		if ext == ".svg" || ext == ".webp" || ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".gif" || ext == ".ico" {
 			allowed = true
 		}
 	}
@@ -411,25 +419,49 @@ func (h *APIHandler) UploadImage(c *gin.Context) {
 		return
 	}
 
-	// 确保上传目录存在
+	// 计算内容哈希，查找是否已存在相同图片
+	sum := sha256.Sum256(data)
+	hash := hex.EncodeToString(sum[:])
+
+	// 1. 先查 uploads_meta 表
+	existing, err := h.store.FindUploadByHash(hash)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "查询图片索引失败"})
+		return
+	}
+	if existing != "" {
+		c.JSON(http.StatusOK, gin.H{"url": "/uploads/" + existing, "name": existing, "deduped": true})
+		return
+	}
+
+	// 2. 兜底扫描 uploads 目录（兼容历史未登记文件）
+	if existing == "" {
+		existing = h.findFileByHashInDir(hash)
+		if existing != "" {
+			_ = h.store.RegisterUpload(hash, existing, file.Size)
+			c.JSON(http.StatusOK, gin.H{"url": "/uploads/" + existing, "name": existing, "deduped": true})
+			return
+		}
+	}
+
+	// 3. 保存新文件
 	if err := os.MkdirAll(h.cfg.Upload.Dir, 0755); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "创建上传目录失败"})
 		return
 	}
-
-	// 生成文件名
 	ext := filepath.Ext(file.Filename)
 	if ext == "" {
 		ext = ".png"
 	}
 	filename := fmt.Sprintf("icon_%d%s", time.Now().UnixNano(), ext)
 	savePath := filepath.Join(h.cfg.Upload.Dir, filename)
-
-	// 重新读取并保存文件（因为前面读了文件头）
-	src.Seek(0, 0)
-	if err := c.SaveUploadedFile(file, savePath); err != nil {
+	if err := os.WriteFile(savePath, data, 0644); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "文件保存失败: " + err.Error()})
 		return
+	}
+	if err := h.store.RegisterUpload(hash, filename, file.Size); err != nil {
+		// 登记失败不影响上传成功
+		log.Printf("登记上传文件失败: %v", err)
 	}
 
 	// 返回可访问的 URL
@@ -437,6 +469,141 @@ func (h *APIHandler) UploadImage(c *gin.Context) {
 		"url":  "/uploads/" + filename,
 		"name": filename,
 	})
+}
+
+// findFileByHashInDir 扫描上传目录，查找内容哈希相同的已有文件
+func (h *APIHandler) findFileByHashInDir(hash string) string {
+	entries, err := os.ReadDir(h.cfg.Upload.Dir)
+	if err != nil {
+		return ""
+	}
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+		path := filepath.Join(h.cfg.Upload.Dir, e.Name())
+		data, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+		sum := sha256.Sum256(data)
+		if hex.EncodeToString(sum[:]) == hash {
+			return e.Name()
+		}
+	}
+	return ""
+}
+
+// countUploadRefs 统计某上传文件的引用次数（导航项图标 + 站点设置 Logo/Favicon）
+func (h *APIHandler) countUploadRefs(filename string) int {
+	url := "/uploads/" + filename
+	count := 0
+	items, err := h.store.ListNavItems()
+	if err == nil {
+		for _, it := range items {
+			if strings.Contains(it.Icon, url) {
+				count++
+			}
+		}
+	}
+	settings, err := h.store.GetAllSettings()
+	if err == nil {
+		if strings.Contains(settings.LogoLight, url) {
+			count++
+		}
+		if strings.Contains(settings.LogoDark, url) {
+			count++
+		}
+		if strings.Contains(settings.Favicon, url) {
+			count++
+		}
+	}
+	return count
+}
+
+// ListUploads 列出上传的图片（含引用次数）
+func (h *APIHandler) ListUploads(c *gin.Context) {
+	type uploadInfo struct {
+		Name      string    `json:"name"`
+		Size      int64     `json:"size"`
+		CreatedAt time.Time `json:"created_at"`
+		RefCount  int       `json:"ref_count"`
+	}
+
+	metas, err := h.store.ListUploads()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 合并目录中未被登记的历史文件
+	entries, _ := os.ReadDir(h.cfg.Upload.Dir)
+	known := make(map[string]bool)
+	var result []uploadInfo
+	for _, m := range metas {
+		known[m.Filename] = true
+		// 文件可能已被手动删除
+		if _, err := os.Stat(filepath.Join(h.cfg.Upload.Dir, m.Filename)); err != nil {
+			continue
+		}
+		result = append(result, uploadInfo{
+			Name:      m.Filename,
+			Size:      m.Size,
+			CreatedAt: m.CreatedAt,
+			RefCount:  h.countUploadRefs(m.Filename),
+		})
+	}
+	for _, e := range entries {
+		if e.IsDir() || known[e.Name()] {
+			continue
+		}
+		// 跳过 .gitkeep 等隐藏/占位文件
+		if strings.HasPrefix(e.Name(), ".") {
+			continue
+		}
+		info, err := e.Info()
+		if err != nil {
+			continue
+		}
+		result = append(result, uploadInfo{
+			Name:      e.Name(),
+			Size:      info.Size(),
+			CreatedAt: info.ModTime(),
+			RefCount:  h.countUploadRefs(e.Name()),
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": result})
+}
+
+// DeleteUpload 删除上传的图片（被引用时禁止删除）
+func (h *APIHandler) DeleteUpload(c *gin.Context) {
+	filename := c.Param("name")
+	// 防路径穿越
+	if filename == "" || strings.Contains(filename, "/") || strings.Contains(filename, "\\") || strings.Contains(filename, "..") {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的文件名"})
+		return
+	}
+
+	refs := h.countUploadRefs(filename)
+	if refs > 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("该图片正被 %d 处引用，请先解除引用再删除", refs)})
+		return
+	}
+
+	path := filepath.Join(h.cfg.Upload.Dir, filename)
+	if err := os.Remove(path); err != nil {
+		if os.IsNotExist(err) {
+			// 文件已不存在，清理登记即可
+			_ = h.store.DeleteUploadMeta(filename)
+			c.JSON(http.StatusOK, gin.H{"message": "删除成功"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "删除失败: " + err.Error()})
+		return
+	}
+	_ = h.store.DeleteUploadMeta(filename)
+	c.JSON(http.StatusOK, gin.H{"message": "删除成功"})
 }
 
 // ==================== 站点设置 API ====================
