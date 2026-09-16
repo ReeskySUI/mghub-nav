@@ -28,9 +28,6 @@
           <span class="search-icon">🔍</span>
           <input type="text" id="search-input" placeholder="搜索服务名称、描述或地址... (Ctrl+K)" autocomplete="off">
         </div>
-        <select id="category-filter" class="nav-cat-filter" title="按分类筛选">
-          <option value="">全部分类</option>
-        </select>
       </div>
 
       <div class="nav-actions">
@@ -61,7 +58,10 @@
       </div>
     </header>
 
-    <main class="nav-content" id="nav-container"></main>
+    <div class="nav-body">
+      <aside class="nav-sidebar" id="category-sidebar" aria-label="按分类筛选"></aside>
+      <main class="nav-content" id="nav-container"></main>
+    </div>
   </div>
 
   <script type="application/json" id="nav-data">

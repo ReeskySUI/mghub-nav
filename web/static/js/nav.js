@@ -52,7 +52,8 @@
 
   // 搜索功能
   const searchInput = document.getElementById('search-input');
-  const categoryFilter = document.getElementById('category-filter');
+  const categorySidebar = document.getElementById('category-sidebar');
+  let currentCategoryId = '';
   let currentItems = [];
   let searchTimeout = null;
 
@@ -66,13 +67,21 @@
         currentItems = [];
       }
     }
-    buildCategoryFilter();
+    buildCategoryTabs();
     renderNavItems(currentItems, currentLayout);
   }
 
-  // 从导航项中动态提取分类列表，填充筛选下拉
-  function buildCategoryFilter() {
-    if (!categoryFilter) return;
+  // 分类彩色色板（钢琴键配色，按顺序循环）
+  const CATEGORY_COLORS = [
+    '#0175CB', '#FE8835', '#7C4DFF', '#00BFA5', '#E53935',
+    '#8E24AA', '#43A047', '#F4511E', '#3949AB', '#00897B',
+    '#D81B60', '#5D4037'
+  ];
+
+  // 从导航项中动态提取分类列表，渲染左侧彩色分类页签
+  function buildCategoryTabs() {
+    const sidebar = document.getElementById('category-sidebar');
+    if (!sidebar) return;
     const cats = [];
     const seen = {};
     currentItems.forEach(function (item) {
@@ -82,19 +91,45 @@
         cats.push({ id: cid, name: item.category_name || '未分类' });
       }
     });
-    categoryFilter.innerHTML =
-      '<option value="">全部分类</option>' +
-      cats
-        .map(function (c) {
-          return '<option value="' + c.id + '">' + escapeHtml(c.name) + '</option>';
-        })
-        .join('');
+
+    let html =
+      '<button class="cat-tab active" data-cat="" style="--cat-color:#0175CB">' +
+      '<span class="cat-tab-dot"></span>' +
+      '<span class="cat-tab-name">全部</span>' +
+      '<span class="cat-tab-count">' + currentItems.length + '</span>' +
+      '</button>';
+
+    cats.forEach(function (c, i) {
+      const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
+      const count = currentItems.filter(function (it) {
+        return String(it.category_id) === String(c.id);
+      }).length;
+      html +=
+        '<button class="cat-tab" data-cat="' + c.id + '" style="--cat-color:' + color + '">' +
+        '<span class="cat-tab-dot"></span>' +
+        '<span class="cat-tab-name">' + escapeHtml(c.name) + '</span>' +
+        '<span class="cat-tab-count">' + count + '</span>' +
+        '</button>';
+    });
+
+    sidebar.innerHTML = html;
+
+    sidebar.querySelectorAll('.cat-tab').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        sidebar.querySelectorAll('.cat-tab').forEach(function (b) {
+          b.classList.remove('active');
+        });
+        this.classList.add('active');
+        currentCategoryId = this.dataset.cat;
+        applyFilter();
+      });
+    });
   }
 
   // 组合应用搜索关键词 + 分类筛选
   function applyFilter() {
     const keyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
-    const catId = categoryFilter ? categoryFilter.value : '';
+    const catId = currentCategoryId;
 
     let list = currentItems;
 
@@ -191,13 +226,13 @@
       '<div class="card-cat">' +
       escapeHtml(item.category_name || '未分类') +
       '</div>' +
+      '<div class="card-tag">' +
+      tagHtml +
+      '</div>' +
       '</div>' +
       '<div class="card-desc">' +
       escapeHtml(item.description || '') +
       '</div>' +
-      '</div>' +
-      '<div class="card-tag">' +
-      tagHtml +
       '</div>' +
       '</a>'
     );
@@ -269,10 +304,6 @@
     });
   }
 
-  // 分类筛选
-  if (categoryFilter) {
-    categoryFilter.addEventListener('change', applyFilter);
-  }
 
   // 初始化
   initItems();

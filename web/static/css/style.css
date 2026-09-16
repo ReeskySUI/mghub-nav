@@ -882,9 +882,8 @@ a:hover {
 
 /* 导航内容区 */
 .nav-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 32px;
+  flex: 1;
+  min-width: 0;
 }
 
 .nav-category {
@@ -978,6 +977,7 @@ a:hover {
 }
 
 .nav-card .card-name {
+  flex: 1 1 auto;
   font-size: 0.98rem;
   font-weight: 600;
   color: var(--text);
@@ -998,9 +998,10 @@ a:hover {
 }
 
 .nav-card .card-tag {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  flex-shrink: 0;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
 }
 
 /* 列表布局 */
@@ -1814,8 +1815,129 @@ a:hover {
   background: var(--primary-light);
   color: var(--primary);
   white-space: nowrap;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 [data-theme="dark"] .nav-card .card-cat {
   background: rgba(246, 224, 201, 0.14);
   color: #F6E0C9;
+}
+
+/* ========== 左侧分类钢琴键 ========== */
+.nav-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 28px 32px;
+  width: 100%;
+}
+
+.nav-sidebar {
+  flex-shrink: 0;
+  width: 216px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: sticky;
+  top: 24px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.cat-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--white);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease;
+}
+
+.cat-tab:hover {
+  border-color: var(--primary);
+  transform: translateX(3px);
+}
+
+.cat-tab-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--cat-color, var(--primary));
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+}
+
+.cat-tab-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cat-tab-count {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  background: var(--border-light);
+  padding: 1px 9px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+/* 选中（按下）状态：背景用分类色，内阴影 + 下移呈现按下去 */
+.cat-tab.active {
+  background: var(--cat-color, var(--primary));
+  border-color: var(--cat-color, var(--primary));
+  color: #ffffff;
+  transform: translateY(1px);
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.cat-tab.active .cat-tab-dot {
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+}
+
+.cat-tab.active .cat-tab-count {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .nav-body {
+    flex-direction: column;
+    padding: 16px 16px 28px;
+    gap: 14px;
+  }
+
+  .nav-sidebar {
+    position: static;
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-height: none;
+    padding: 4px 0;
+  }
+
+  .cat-tab {
+    flex-shrink: 0;
+    width: auto;
+  }
+
+  .nav-content {
+    padding: 0;
+  }
 }
