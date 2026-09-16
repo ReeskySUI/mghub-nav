@@ -763,6 +763,11 @@ a:hover {
   font-size: 0.85rem;
 }
 
+/* 桌面端隐藏下拉，使用左侧钢琴键页签 */
+.nav-cat-filter {
+  display: none;
+}
+
 .nav-actions {
   display: flex;
   align-items: center;
@@ -1922,19 +1927,13 @@ a:hover {
     gap: 14px;
   }
 
+  /* 移动端恢复顶部下拉分类筛选 */
   .nav-sidebar {
-    position: static;
-    width: 100%;
-    flex-direction: row;
-    overflow-x: auto;
-    overflow-y: hidden;
-    max-height: none;
-    padding: 4px 0;
+    display: none;
   }
 
-  .cat-tab {
-    flex-shrink: 0;
-    width: auto;
+  .nav-cat-filter {
+    display: block;
   }
 
   .nav-content {

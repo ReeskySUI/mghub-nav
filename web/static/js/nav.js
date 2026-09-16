@@ -53,6 +53,7 @@
   // 搜索功能
   const searchInput = document.getElementById('search-input');
   const categorySidebar = document.getElementById('category-sidebar');
+  const categoryFilter = document.getElementById('category-filter');
   let currentCategoryId = '';
   let currentItems = [];
   let searchTimeout = null;
@@ -114,6 +115,28 @@
 
     sidebar.innerHTML = html;
 
+    // 移动端下拉（与左侧页签共用同一份分类数据与状态）
+    if (categoryFilter) {
+      categoryFilter.innerHTML =
+        '<option value="">全部分类</option>' +
+        cats
+          .map(function (c) {
+            return '<option value="' + c.id + '">' + escapeHtml(c.name) + '</option>';
+          })
+          .join('');
+      categoryFilter.value = currentCategoryId;
+      if (!categoryFilter.dataset.bound) {
+        categoryFilter.dataset.bound = '1';
+        categoryFilter.addEventListener('change', function () {
+          currentCategoryId = this.value;
+          sidebar.querySelectorAll('.cat-tab').forEach(function (b) {
+            b.classList.toggle('active', String(b.dataset.cat) === String(currentCategoryId));
+          });
+          applyFilter();
+        });
+      }
+    }
+
     sidebar.querySelectorAll('.cat-tab').forEach(function (btn) {
       btn.addEventListener('click', function () {
         sidebar.querySelectorAll('.cat-tab').forEach(function (b) {
@@ -121,6 +144,9 @@
         });
         this.classList.add('active');
         currentCategoryId = this.dataset.cat;
+        if (categoryFilter) {
+          categoryFilter.value = currentCategoryId;
+        }
         applyFilter();
       });
     });
