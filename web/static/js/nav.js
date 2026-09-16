@@ -245,15 +245,15 @@
       iconHtml +
       '</div>' +
       '<div class="card-body">' +
-      '<div class="card-name-row">' +
       '<div class="card-name">' +
       escapeHtml(item.name) +
       '</div>' +
-      '<div class="card-cat">' +
-      escapeHtml(item.category_name || '未分类') +
-      '</div>' +
+      '<div class="card-tag-row">' +
       '<div class="card-tag">' +
       tagHtml +
+      '</div>' +
+      '<div class="card-cat">' +
+      escapeHtml(item.category_name || '未分类') +
       '</div>' +
       '</div>' +
       '<div class="card-desc">' +

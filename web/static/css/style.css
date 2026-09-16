@@ -952,7 +952,7 @@ a:hover {
 .nav-card .card-icon {
   flex-shrink: 0;
   width: 44px;
-  height: 44px;
+  height: 48px;
   border-radius: 10px;
   background: var(--cream);
   display: flex;
@@ -981,8 +981,16 @@ a:hover {
   min-width: 0;
 }
 
+/* 网格卡片：名称独占一行，右对齐；标签行放公网/内网 + 分类 */
+.nav-card .card-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 6px;
+  min-width: 0;
+}
+
 .nav-card .card-name {
-  flex: 1 1 auto;
   font-size: 0.98rem;
   font-weight: 600;
   color: var(--text);
@@ -990,6 +998,7 @@ a:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+  text-align: right;
 }
 
 .nav-card .card-desc {
@@ -1004,7 +1013,6 @@ a:hover {
 
 .nav-card .card-tag {
   flex-shrink: 0;
-  margin-left: auto;
   display: flex;
   align-items: center;
 }
