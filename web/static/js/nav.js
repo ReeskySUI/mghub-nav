@@ -184,11 +184,13 @@
       iconHtml +
       '</div>' +
       '<div class="card-body">' +
+      '<div class="card-name-row">' +
       '<div class="card-name">' +
       escapeHtml(item.name) +
       '</div>' +
       '<div class="card-cat">' +
       escapeHtml(item.category_name || '未分类') +
+      '</div>' +
       '</div>' +
       '<div class="card-desc">' +
       escapeHtml(item.description || '') +
