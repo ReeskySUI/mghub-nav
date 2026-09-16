@@ -256,9 +256,9 @@
       escapeHtml(item.category_name || '未分类') +
       '</div>' +
       '</div>' +
+      '</div>' +
       '<div class="card-desc">' +
       escapeHtml(item.description || '') +
-      '</div>' +
       '</div>' +
       '</a>'
     );

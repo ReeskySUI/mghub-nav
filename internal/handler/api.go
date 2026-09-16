@@ -143,6 +143,10 @@ func (h *APIHandler) CreateNavItem(c *gin.Context) {
 	if req.IconType == "" {
 		req.IconType = "emoji"
 	}
+	if len([]rune(req.Description)) > 80 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "描述不能超过80个字符"})
+		return
+	}
 	item, err := h.store.CreateNavItem(&req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -164,6 +168,10 @@ func (h *APIHandler) UpdateNavItem(c *gin.Context) {
 		return
 	}
 	req.ID = id
+	if len([]rune(req.Description)) > 80 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "描述不能超过80个字符"})
+		return
+	}
 	if err := h.store.UpdateNavItem(&req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
