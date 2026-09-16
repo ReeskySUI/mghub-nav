@@ -988,6 +988,7 @@ a:hover {
   gap: 8px;
   margin: 2px 0 6px;
   min-width: 0;
+  justify-content: flex-end;
 }
 
 .nav-card .card-name {
