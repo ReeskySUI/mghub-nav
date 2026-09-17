@@ -491,6 +491,8 @@ func (s *Store) GetAllSettings() (*model.SiteSettings, error) {
 		HomeHeroTitle: m["home_hero_title"],
 		HomeHeroSub:   m["home_hero_sub"],
 		FooterText:    m["footer_text"],
+		WikiURL:       m["wiki_url"],
+		HomeURL:       m["home_url"],
 		DefaultTheme:  m["default_theme"],
 	}, rows.Err()
 }

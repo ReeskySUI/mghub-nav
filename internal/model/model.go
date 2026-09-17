@@ -97,6 +97,8 @@ type SiteSettings struct {
 	HomeHeroTitle string `json:"home_hero_title"`
 	HomeHeroSub   string `json:"home_hero_sub"`
 	FooterText    string `json:"footer_text"`
+	WikiURL       string `json:"wiki_url"`
+	HomeURL       string `json:"home_url"`
 	DefaultTheme  string `json:"default_theme"` // light / dark / auto
 }
 

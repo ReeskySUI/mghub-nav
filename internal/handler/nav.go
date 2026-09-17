@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -37,18 +36,9 @@ func (h *NavHandler) Index(c *gin.Context) {
 	session := middleware.GetCurrentUser(c)
 	isAdmin := session != nil && (session.Role == model.RoleAdmin || session.Role == model.RoleSuperAdmin)
 
-	// 从 site_links 表获取链接
-	headerLinks, _ := h.store.ListLinks("header")
-	wikiURL := ""
-	homeURL := ""
-	for _, l := range headerLinks {
-		if wikiURL == "" && (strings.Contains(l.Name, "wiki") || strings.Contains(l.Name, "Wiki") || strings.Contains(l.Name, "文档")) {
-			wikiURL = l.URL
-		}
-		if homeURL == "" && (strings.Contains(l.Name, "首页") || strings.Contains(l.Name, "home") || strings.Contains(l.Name, "Home")) {
-			homeURL = l.URL
-		}
-	}
+	// 从站点设置读取 Wiki / 首页地址
+	wikiURL := settings.WikiURL
+	homeURL := settings.HomeURL
 	if wikiURL == "" {
 		wikiURL = "#"
 	}

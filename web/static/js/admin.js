@@ -767,6 +767,8 @@
       site_subtitle: document.getElementById('set-site-subtitle').value.trim(),
       logo_text: document.getElementById('set-logo-text').value.trim(),
       footer_text: document.getElementById('set-footer-text').value.trim(),
+      wiki_url: document.getElementById('set-wiki-url').value.trim(),
+      home_url: document.getElementById('set-home-url').value.trim(),
       home_badge: document.getElementById('set-home-badge').value.trim(),
       home_hero_title: document.getElementById('set-home-hero-title').value.trim(),
       home_hero_sub: document.getElementById('set-home-hero-sub').value.trim(),
