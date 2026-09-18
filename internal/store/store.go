@@ -493,6 +493,10 @@ func (s *Store) GetAllSettings() (*model.SiteSettings, error) {
 		FooterText:    m["footer_text"],
 		WikiURL:       m["wiki_url"],
 		HomeURL:       m["home_url"],
+		HomeBadgeIcon: m["home_badge_icon"],
+		CustomPrimary: m["custom_primary"],
+		CustomAccent:  m["custom_accent"],
+		CustomBg:      m["custom_bg"],
 		DefaultTheme:  m["default_theme"],
 	}, rows.Err()
 }

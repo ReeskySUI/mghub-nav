@@ -1953,3 +1953,62 @@ a:hover {
     padding: 0;
   }
 }
+/* 图片管理相册视图 */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+.gallery-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+.gallery-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.gallery-thumb {
+  height: 140px;
+  background: var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.gallery-thumb img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.gallery-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+.gallery-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gallery-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.gallery-tags {
+  display: flex;
+  gap: 6px;
+}
+.gallery-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}

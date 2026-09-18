@@ -99,6 +99,10 @@ type SiteSettings struct {
 	FooterText    string `json:"footer_text"`
 	WikiURL       string `json:"wiki_url"`
 	HomeURL       string `json:"home_url"`
+	HomeBadgeIcon string `json:"home_badge_icon"`
+	CustomPrimary string `json:"custom_primary"`
+	CustomAccent  string `json:"custom_accent"`
+	CustomBg      string `json:"custom_bg"`
 	DefaultTheme  string `json:"default_theme"` // light / dark / auto
 }
 

@@ -68,7 +68,8 @@ func main() {
 
 	funcMap := template.FuncMap{
 		"upper": strings.ToUpper,
-		"lower": strings.ToLower,
+		"lower":     strings.ToLower,
+		"hasPrefix": strings.HasPrefix,
 	}
 	tmpl := template.Must(template.New("").Funcs(funcMap).ParseFS(templateFS, "web/templates/*.html"))
 	r.SetHTMLTemplate(tmpl)
@@ -89,6 +90,10 @@ func main() {
 	r.GET("/", func(c *gin.Context) {
 		site := middleware.GetCurrentSite(c)
 		if site == "home" {
+			if !cfg.Site.HomeEnabled {
+				c.Redirect(http.StatusFound, "https://"+cfg.Server.NavHost)
+				return
+			}
 			homeHandler.Index(c)
 			return
 		}
@@ -143,21 +148,21 @@ func main() {
 		apiGroup.GET("/uploads", middleware.AdminRequired(), apiHandler.ListUploads)
 		apiGroup.DELETE("/uploads/:name", middleware.AdminRequired(), apiHandler.DeleteUpload)
 
-		// 站点设置
+		// 站点设置（仅超管）
 		apiGroup.GET("/settings", apiHandler.GetSettings)
-		apiGroup.POST("/settings", middleware.AdminRequired(), apiHandler.UpdateSettings)
+		apiGroup.POST("/settings", middleware.SuperAdminRequired(), apiHandler.UpdateSettings)
 
 		// 愿景要点
 		apiGroup.GET("/visions", apiHandler.ListVisions)
-		apiGroup.POST("/visions", middleware.AdminRequired(), apiHandler.CreateVision)
-		apiGroup.PUT("/visions/:id", middleware.AdminRequired(), apiHandler.UpdateVision)
-		apiGroup.DELETE("/visions/:id", middleware.AdminRequired(), apiHandler.DeleteVision)
+		apiGroup.POST("/visions", middleware.SuperAdminRequired(), apiHandler.CreateVision)
+		apiGroup.PUT("/visions/:id", middleware.SuperAdminRequired(), apiHandler.UpdateVision)
+		apiGroup.DELETE("/visions/:id", middleware.SuperAdminRequired(), apiHandler.DeleteVision)
 
 		// 站点链接
 		apiGroup.GET("/links", apiHandler.ListLinks)
-		apiGroup.POST("/links", middleware.AdminRequired(), apiHandler.CreateLink)
-		apiGroup.PUT("/links/:id", middleware.AdminRequired(), apiHandler.UpdateLink)
-		apiGroup.DELETE("/links/:id", middleware.AdminRequired(), apiHandler.DeleteLink)
+		apiGroup.POST("/links", middleware.SuperAdminRequired(), apiHandler.CreateLink)
+		apiGroup.PUT("/links/:id", middleware.SuperAdminRequired(), apiHandler.UpdateLink)
+		apiGroup.DELETE("/links/:id", middleware.SuperAdminRequired(), apiHandler.DeleteLink)
 	}
 
 	r.NoRoute(func(c *gin.Context) {

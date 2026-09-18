@@ -17,7 +17,11 @@
   <style>
     .logo-img { height: 32px; width: auto; display: block; }
     .logo-mark-img { width: 36px; height: 36px; border-radius: 8px; object-fit: contain; }
+    .badge-icon-img { width: 20px; height: 20px; border-radius: 4px; object-fit: contain; }
   </style>
+  {{if .custom_primary}}<style>:root:not([data-theme="dark"]){--primary: {{.custom_primary}}; --primary-dark: {{.custom_primary}};}</style>{{end}}
+  {{if .custom_accent}}<style>:root:not([data-theme="dark"]){--accent: {{.custom_accent}};}</style>{{end}}
+  {{if .custom_bg}}<style>body{background-image:url('{{.custom_bg}}');background-size:cover;background-attachment:fixed;}</style>{{end}}
 </head>
 <body>
   <div class="home-wrapper">
@@ -46,7 +50,7 @@
 
     <main class="home-hero">
       <div class="badge">
-        <span>🧪</span>
+        {{if .home_badge_icon}}{{if hasPrefix .home_badge_icon "/"}}<img src="{{.home_badge_icon}}" class="badge-icon-img">{{else if hasPrefix .home_badge_icon "http"}}<img src="{{.home_badge_icon}}" class="badge-icon-img">{{else}}<span class="badge-emoji">{{.home_badge_icon}}</span>{{end}}{{else}}<span>🧪</span>{{end}}
         <span>{{.home_badge}}</span>
       </div>
 

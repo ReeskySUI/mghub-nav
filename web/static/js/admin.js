@@ -77,7 +77,7 @@
   // 表格状态：category / nav 两张表
   const tableState = {
     category: { search: '', sortKey: null, sortDir: 1 },
-    nav: { search: '', category: '', sortKey: null, sortDir: 1 },
+    nav: { search: '', category: '', type: '', visibility: '', sortKey: null, sortDir: 1 },
   };
 
   function compareValues(a, b, key) {
@@ -504,6 +504,21 @@
       });
     }
 
+    // 类型筛选
+    if (tableState.nav.type) {
+      list = list.filter(function (item) {
+        const t = item.is_public ? 'public' : 'private';
+        return t === tableState.nav.type;
+      });
+    }
+
+    // 可见范围筛选
+    if (tableState.nav.visibility) {
+      list = list.filter(function (item) {
+        return (item.visible_roles || 'all') === tableState.nav.visibility;
+      });
+    }
+
     // 搜索
     const kw = tableState.nav.search.toLowerCase();
     if (kw) {
@@ -571,6 +586,20 @@
   if (navCatFilter) {
     navCatFilter.addEventListener('change', function () {
       tableState.nav.category = this.value;
+      renderNavTable();
+    });
+  }
+  const navTypeFilter = document.getElementById('nav-type-filter');
+  if (navTypeFilter) {
+    navTypeFilter.addEventListener('change', function () {
+      tableState.nav.type = this.value;
+      renderNavTable();
+    });
+  }
+  const navVisFilter = document.getElementById('nav-visibility-filter');
+  if (navVisFilter) {
+    navVisFilter.addEventListener('change', function () {
+      tableState.nav.visibility = this.value;
       renderNavTable();
     });
   }
@@ -770,6 +799,10 @@
       wiki_url: document.getElementById('set-wiki-url').value.trim(),
       home_url: document.getElementById('set-home-url').value.trim(),
       home_badge: document.getElementById('set-home-badge').value.trim(),
+      home_badge_icon: (document.getElementById('set-home-badge-icon') || {value:''}).value.trim(),
+      custom_primary: (document.getElementById('set-custom-primary') || {value:''}).value.trim(),
+      custom_accent: (document.getElementById('set-custom-accent') || {value:''}).value.trim(),
+      custom_bg: (document.getElementById('set-custom-bg') || {value:''}).value.trim(),
       home_hero_title: document.getElementById('set-home-hero-title').value.trim(),
       home_hero_sub: document.getElementById('set-home-hero-sub').value.trim(),
       logo_light: document.getElementById('set-logo-light').value.trim(),
@@ -997,7 +1030,7 @@
         list.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;padding:12px;">暂无上传图片，可在导航项图标、Logo 或 Favicon 中上传</div>';
         return;
       }
-      list.innerHTML = res.data.map(function (u) {
+      list.innerHTML = '<div class="gallery-grid">' + res.data.map(function (u) {
         const size = u.size >= 1048576
           ? (u.size / 1048576).toFixed(1) + ' MB'
           : (u.size >= 1024 ? Math.round(u.size / 1024) + ' KB' : u.size + ' B');
@@ -1008,22 +1041,34 @@
         const delBtn = u.ref_count > 0
           ? '<button class="btn btn-sm btn-ghost" disabled title="该图片正被引用，无法删除">删除</button>'
           : '<button class="btn btn-sm btn-danger" onclick="deleteUpload(\'' + u.name.replace(/'/g, "\\'") + '\')">删除</button>';
+        const url = '/uploads/' + encodeURIComponent(u.name);
         return (
-          '<div class="upload-item">' +
-          '<div class="upload-thumb"><img src="/uploads/' + encodeURIComponent(u.name) + '" alt=""></div>' +
-          '<div class="upload-info">' +
-          '<div class="upload-name">' + escapeHtml(u.name) + '</div>' +
-          '<div class="upload-meta">' + size + (time ? ' · ' + time : '') + '</div>' +
-          '</div>' +
-          refTag +
+          '<div class="gallery-card">' +
+          '<div class="gallery-thumb"><img src="' + url + '" alt=""></div>' +
+          '<div class="gallery-body">' +
+          '<div class="gallery-name" title="' + escapeHtml(u.name) + '">' + escapeHtml(u.name) + '</div>' +
+          '<div class="gallery-meta">' + size + (time ? ' · ' + time : '') + '</div>' +
+          '<div class="gallery-tags">' + refTag + '</div>' +
+          '<div class="gallery-actions">' +
+          '<button class="btn btn-sm btn-outline" onclick="copyImageUrl(\'' + url.replace(/'/g, "\\'") + '\')">复制链接</button>' +
           delBtn +
-          '</div>'
+          '</div>' +
+          '</div></div>'
         );
-      }).join('');
+      }).join('') + '</div>';
     } catch (err) {
       list.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;padding:12px;">加载失败: ' + escapeHtml(err.message) + '</div>';
     }
   }
+
+  window.copyImageUrl = async function (url) {
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast('链接已复制: ' + url);
+    } catch (err) {
+      prompt('复制图片链接:', url);
+    }
+  };
 
   window.deleteUpload = async function (name) {
     if (!confirm('确定删除图片 "' + name + '" 吗？此操作不可恢复。')) return;

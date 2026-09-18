@@ -44,8 +44,9 @@ type SiteConfig struct {
 	Title    string   `yaml:"title"`
 	Subtitle string   `yaml:"subtitle"`
 	Vision   []string `yaml:"vision"`
-	WikiURL  string   `yaml:"wiki_url"`
-	NavURL   string   `yaml:"nav_url"`
+	WikiURL     string   `yaml:"wiki_url"`
+	NavURL      string   `yaml:"nav_url"`
+	HomeEnabled bool     `yaml:"home_enabled"`
 }
 
 // Load 从文件加载配置

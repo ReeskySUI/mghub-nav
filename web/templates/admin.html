@@ -40,7 +40,7 @@
       <div class="admin-nav-item active" data-target="section-overview"><span>📊</span> 概览</div>
       <div class="admin-nav-item" data-target="section-categories"><span>📁</span> 分类管理</div>
       <div class="admin-nav-item" data-target="section-nav"><span>🔗</span> 导航管理</div>
-      <div class="admin-nav-item" data-target="section-settings"><span>⚙️</span> 站点设置</div>
+      {{if .is_super_admin}}<div class="admin-nav-item" data-target="section-settings"><span>⚙️</span> 站点设置</div>{{end}}
       <div class="admin-nav-item" data-target="section-uploads"><span>🖼️</span> 图片管理</div>
       {{if .is_super_admin}}
       <div class="admin-nav-item" data-target="section-users"><span>👥</span> 用户管理</div>
@@ -101,6 +101,16 @@
           <input type="text" id="nav-search" class="form-input form-input-sm table-search" placeholder="搜索名称、URL、描述...">
           <select id="nav-category-filter" class="form-select form-input-sm table-filter">
             <option value="">全部分类</option>
+          </select>
+          <select id="nav-type-filter" class="form-select form-input-sm table-filter">
+            <option value="">全部类型</option>
+            <option value="public">公网</option>
+            <option value="private">内网</option>
+          </select>
+          <select id="nav-visibility-filter" class="form-select form-input-sm table-filter">
+            <option value="">全部可见范围</option>
+            <option value="all">所有用户</option>
+            <option value="admin">仅管理员</option>
           </select>
         </div>
         <div style="overflow-x:auto;">
@@ -170,6 +180,7 @@
         <h3 class="section-subtitle">首页内容</h3>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
           <div class="form-group"><label class="form-label">首页徽章文字（标题上方小字）</label><input type="text" id="set-home-badge" class="form-input" value="{{.settings.HomeBadge}}"></div>
+          <div class="form-group"><label class="form-label">徽章图标（Emoji 或图片 URL）</label><input type="text" id="set-home-badge-icon" class="form-input" value="{{.settings.HomeBadgeIcon}}" placeholder="如 🚀 或 /uploads/xxx.png"></div>
           <div class="form-group"><label class="form-label">首页大标题</label><input type="text" id="set-home-hero-title" class="form-input" value="{{.settings.HomeHeroTitle}}"></div>
           <div class="form-group" style="grid-column:1/-1;"><label class="form-label">首页标题下的题语</label><input type="text" id="set-home-hero-sub" class="form-input" value="{{.settings.HomeHeroSub}}"></div>
         </div>
@@ -199,6 +210,15 @@
               <option value="dark" {{if eq .settings.DefaultTheme "dark"}}selected{{end}}>深色</option>
             </select>
           </div>
+        </div>
+
+        <!-- 实验性外观（仅超管） -->
+        <h3 class="section-subtitle">实验性外观（仅超管）</h3>
+        <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:12px;">自定义主题色（留空使用默认）与页面背景图。深色模式仍使用内置配色。</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div class="form-group"><label class="form-label">主色 HEX（默认 #0175CB）</label><input type="text" id="set-custom-primary" class="form-input" value="{{.settings.CustomPrimary}}" placeholder="#0175CB"></div>
+          <div class="form-group"><label class="form-label">强调色 HEX（默认 #FE8835）</label><input type="text" id="set-custom-accent" class="form-input" value="{{.settings.CustomAccent}}" placeholder="#FE8835"></div>
+          <div class="form-group" style="grid-column:1/-1;"><label class="form-label">页面背景图 URL（可选，留空纯色）</label><input type="text" id="set-custom-bg" class="form-input" value="{{.settings.CustomBg}}" placeholder="https://... 或 /uploads/xxx.jpg"></div>
         </div>
       </section>
 
