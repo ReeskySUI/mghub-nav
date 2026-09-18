@@ -126,6 +126,7 @@ func (h *NavHandler) Index(c *gin.Context) {
 		"custom_accent":  settings.CustomAccent,
 		"custom_bg":      settings.CustomBg,
 		"custom_bg_color": settings.CustomBgColor,
+		"custom_bg_opacity": settings.CustomBgOpacity,
 		"custom_theme_enabled": settings.CustomThemeEnabled,
 		"announcement":  activeAnnouncement(h.store),
 		"categories":    categoriesWithItems,

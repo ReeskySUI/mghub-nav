@@ -511,6 +511,7 @@ func (s *Store) GetAllSettings() (*model.SiteSettings, error) {
 		CustomAccent:  m["custom_accent"],
 		CustomBg:      m["custom_bg"],
 		CustomBgColor: m["custom_bg_color"],
+		CustomBgOpacity: m["custom_bg_opacity"],
 		CustomThemeEnabled: m["custom_theme_enabled"],
 		DefaultTheme:  m["default_theme"],
 	}, rows.Err()

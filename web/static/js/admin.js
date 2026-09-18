@@ -805,6 +805,7 @@
       custom_accent: (document.getElementById('set-custom-accent') || {value:''}).value.trim(),
       custom_bg: (document.getElementById('set-custom-bg') || {value:''}).value.trim(),
       custom_bg_color: (document.getElementById('set-custom-bg-color') || {value:''}).value.trim(),
+      custom_bg_opacity: (document.getElementById('set-custom-bg-opacity') || {value:''}).value,
       custom_theme_enabled: (document.getElementById('set-custom-theme-enabled') && document.getElementById('set-custom-theme-enabled').checked) ? '1' : '',
       home_hero_title: document.getElementById('set-home-hero-title').value.trim(),
       home_hero_sub: document.getElementById('set-home-hero-sub').value.trim(),
