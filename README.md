@@ -161,6 +161,8 @@ site:
   wiki_url: "https://wiki.example.com"
   # 导航页地址
   nav_url: "https://nav.example.com"
+  # 是否开启首页：true 展示首页愿景页；false 时访问首页域名直接跳转到导航页（只跑导航页场景）
+  home_enabled: true
 ```
 
 ## 部署到 Linux（VPS）

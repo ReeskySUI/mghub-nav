@@ -47,5 +47,7 @@ site:
     - "所有服务透明可查，架构可演进、可迁移、可回溯"
   # Wiki 地址
   wiki_url: "https://wiki.example.com"
+  # 是否开启首页（false 时首页直接跳转到导航页）
+  home_enabled: true
   # 导航页地址
   nav_url: "https://nav.example.com"
