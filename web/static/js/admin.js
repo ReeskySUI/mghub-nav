@@ -1050,10 +1050,12 @@
           '<div class="gallery-body">' +
           '<div class="gallery-name" title="' + escapeHtml(u.name) + '">' + escapeHtml(u.name) + '</div>' +
           '<div class="gallery-meta">' + size + (time ? ' · ' + time : '') + '</div>' +
-          '<div class="gallery-tags">' + refTag + '</div>' +
-          '<div class="gallery-actions">' +
-          '<button class="btn btn-sm btn-outline" onclick="copyImageUrl(\'' + url.replace(/'/g, "\\'") + '\')">复制链接</button>' +
-          delBtn +
+          '<div class="gallery-tags gallery-tags-actions">' +
+            refTag +
+            '<div class="gallery-actions">' +
+              '<button class="btn btn-sm btn-outline" onclick="copyImageUrl(\'' + url.replace(/'/g, "\\'") + '\')">复制链接</button>' +
+              delBtn +
+            '</div>' +
           '</div>' +
           '</div></div>'
         );
@@ -1204,3 +1206,12 @@ async function deleteAnnouncement(id) {
   await fetch('/api/announcements/' + id, {method:'DELETE'});
   loadAnnouncements();
 }
+
+
+window.applyThemePreset = function(primary, accent) {
+  var p = document.getElementById('set-custom-primary');
+  var a = document.getElementById('set-custom-accent');
+  if (p) p.value = primary;
+  if (a) a.value = accent;
+  if (typeof showToast === 'function') showToast('已应用预设，请点保存');
+};
