@@ -126,10 +126,20 @@ func (h *NavHandler) Index(c *gin.Context) {
 		"custom_accent":  settings.CustomAccent,
 		"custom_bg":      settings.CustomBg,
 		"custom_theme_enabled": settings.CustomThemeEnabled,
+		"announcement":  activeAnnouncement(h.store),
 		"categories":    categoriesWithItems,
 		"all_items":     allowedItems,
 		"logged_in":     true,
 		"is_admin":      isAdmin,
 		"current_user":  session,
 	})
+}
+
+
+func activeAnnouncement(store *store.Store) *model.Announcement {
+	a, err := store.GetActiveAnnouncement()
+	if err != nil {
+		return nil
+	}
+	return a
 }

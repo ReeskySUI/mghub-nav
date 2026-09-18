@@ -126,6 +126,19 @@ func (s *Store) migrate() error {
 		size INTEGER NOT NULL DEFAULT 0,
 		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 	);
+
+	CREATE TABLE IF NOT EXISTS announcements (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		title TEXT NOT NULL DEFAULT '',
+		content TEXT NOT NULL DEFAULT '',
+		level TEXT NOT NULL DEFAULT 'info',
+		enabled INTEGER NOT NULL DEFAULT 1,
+		starts_at TEXT NOT NULL DEFAULT '',
+		ends_at TEXT NOT NULL DEFAULT '',
+		dismissible INTEGER NOT NULL DEFAULT 1,
+		show_on_home INTEGER NOT NULL DEFAULT 0,
+		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+	);
 	`
 	_, err := s.db.Exec(schema)
 	if err != nil {
@@ -586,6 +599,89 @@ func (s *Store) UpdateVision(id int64, content string, sortOrder int) error {
 
 func (s *Store) DeleteVision(id int64) error {
 	_, err := s.db.Exec(`DELETE FROM home_visions WHERE id=?`, id)
+	return err
+}
+
+// ==================== 公告 ====================
+
+func (s *Store) ListAnnouncements() ([]*model.Announcement, error) {
+	rows, err := s.db.Query(`SELECT id, title, content, level, enabled, starts_at, ends_at, dismissible, show_on_home, COALESCE(created_at,'') FROM announcements ORDER BY id DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var list []*model.Announcement
+	for rows.Next() {
+		var a model.Announcement
+		var enabled, dismissible, showHome int
+		if err := rows.Scan(&a.ID, &a.Title, &a.Content, &a.Level, &enabled, &a.StartsAt, &a.EndsAt, &dismissible, &showHome, &a.CreatedAt); err != nil {
+			return nil, err
+		}
+		a.Enabled = enabled == 1
+		a.Dismissible = dismissible == 1
+		a.ShowOnHome = showHome == 1
+		list = append(list, &a)
+	}
+	return list, rows.Err()
+}
+
+func (s *Store) GetActiveAnnouncement() (*model.Announcement, error) {
+	row := s.db.QueryRow(`SELECT id, title, content, level, dismissible FROM announcements
+		WHERE enabled = 1
+		AND (starts_at = '' OR starts_at <= datetime('now', 'localtime'))
+		AND (ends_at = '' OR ends_at >= datetime('now', 'localtime'))
+		ORDER BY CASE level WHEN 'error' THEN 0 WHEN 'warn' THEN 1 ELSE 2 END, id DESC LIMIT 1`)
+	var a model.Announcement
+	err := row.Scan(&a.ID, &a.Title, &a.Content, &a.Level, &a.Dismissible)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
+func (s *Store) CreateAnnouncement(a *model.Announcement) (*model.Announcement, error) {
+	enabled := 0
+	if a.Enabled {
+		enabled = 1
+	}
+	dismiss := 0
+	if a.Dismissible {
+		dismiss = 1
+	}
+	showHome := 0
+	if a.ShowOnHome {
+		showHome = 1
+	}
+	res, err := s.db.Exec(`INSERT INTO announcements (title, content, level, enabled, starts_at, ends_at, dismissible, show_on_home) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		a.Title, a.Content, a.Level, enabled, a.StartsAt, a.EndsAt, dismiss, showHome)
+	if err != nil {
+		return nil, err
+	}
+	id, _ := res.LastInsertId()
+	a.ID = id
+	return a, nil
+}
+
+func (s *Store) UpdateAnnouncement(a *model.Announcement) error {
+	enabled := 0
+	if a.Enabled {
+		enabled = 1
+	}
+	dismiss := 0
+	if a.Dismissible {
+		dismiss = 1
+	}
+	showHome := 0
+	if a.ShowOnHome {
+		showHome = 1
+	}
+	_, err := s.db.Exec(`UPDATE announcements SET title=?, content=?, level=?, enabled=?, starts_at=?, ends_at=?, dismissible=?, show_on_home=? WHERE id=?`,
+		a.Title, a.Content, a.Level, enabled, a.StartsAt, a.EndsAt, dismiss, showHome, a.ID)
+	return err
+}
+
+func (s *Store) DeleteAnnouncement(id int64) error {
+	_, err := s.db.Exec(`DELETE FROM announcements WHERE id=?`, id)
 	return err
 }
 

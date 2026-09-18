@@ -2051,3 +2051,17 @@ a:hover {
 .switch input:checked + .slider:before {
   transform: translateX(20px);
 }
+
+/* 公告横幅 */
+.announcement-banner { display:flex; align-items:center; justify-content:space-between; padding:10px 20px; font-size:14px; border-left:4px solid; }
+.ann-inner { display:flex; align-items:center; gap:10px; flex:1; }
+.ann-icon { font-size:10px; }
+.ann-text { color:inherit; }
+.ann-close { background:none; border:none; cursor:pointer; font-size:16px; padding:4px 8px; border-radius:6px; color:inherit; opacity:0.7; }
+.ann-close:hover { opacity:1; background:rgba(0,0,0,0.08); }
+.ann-level-info { background:#e8f4fd; color:#0175CB; border-color:#0175CB; }
+.ann-level-warn { background:#fff3e8; color:#c46a1a; border-color:#FE8835; }
+.ann-level-error { background:#fde8e8; color:#c53030; border-color:#e53e3e; }
+[data-theme="dark"] .ann-level-info { background:rgba(1,117,203,0.15); color:#7fc0ff; }
+[data-theme="dark"] .ann-level-warn { background:rgba(254,136,53,0.15); color:#ffb877; }
+[data-theme="dark"] .ann-level-error { background:rgba(229,62,62,0.15); color:#ff9999; }

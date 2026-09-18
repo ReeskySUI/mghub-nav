@@ -910,3 +910,75 @@ func (h *APIHandler) UpdateUserCategories(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "分类权限更新成功"})
 }
+
+
+// ==================== 公告 API ====================
+
+func (h *APIHandler) ListAnnouncements(c *gin.Context) {
+	// 公开接口：返回当前生效的一条（成员端用），超管后台管理时带 ?all=1 返回全部
+	if c.Query("all") != "1" {
+		a, err := h.store.GetActiveAnnouncement()
+		if err != nil || a == nil {
+			c.JSON(http.StatusOK, gin.H{"data": nil})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"data": a})
+		return
+	}
+	list, err := h.store.ListAnnouncements()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": list})
+}
+
+func (h *APIHandler) CreateAnnouncement(c *gin.Context) {
+	var a model.Announcement
+	if err := c.ShouldBindJSON(&a); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误"})
+		return
+	}
+	if a.Title == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "标题不能为空"})
+		return
+	}
+	saved, err := h.store.CreateAnnouncement(&a)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": saved})
+}
+
+func (h *APIHandler) UpdateAnnouncement(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效 ID"})
+		return
+	}
+	var a model.Announcement
+	if err := c.ShouldBindJSON(&a); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误"})
+		return
+	}
+	a.ID = id
+	if err := h.store.UpdateAnnouncement(&a); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "更新成功"})
+}
+
+func (h *APIHandler) DeleteAnnouncement(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效 ID"})
+		return
+	}
+	if err := h.store.DeleteAnnouncement(id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "删除成功"})
+}

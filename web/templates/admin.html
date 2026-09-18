@@ -41,6 +41,7 @@
       <div class="admin-nav-item" data-target="section-categories"><span>📁</span> 分类管理</div>
       <div class="admin-nav-item" data-target="section-nav"><span>🔗</span> 导航管理</div>
       {{if .is_super_admin}}<div class="admin-nav-item" data-target="section-settings"><span>⚙️</span> 站点设置</div>{{end}}
+      {{if .is_super_admin}}<div class="admin-nav-item" data-target="section-announcements"><span>📢</span> 公告管理</div>{{end}}
       <div class="admin-nav-item" data-target="section-uploads"><span>🖼️</span> 图片管理</div>
       {{if .is_super_admin}}
       <div class="admin-nav-item" data-target="section-users"><span>👥</span> 用户管理</div>
@@ -225,7 +226,16 @@
 
       <!-- 用户管理 -->
       {{if .is_super_admin}}
-      <section class="admin-section" id="section-users" style="display:none;">
+      
+      <section class="admin-section" id="section-announcements" style="display:none;">
+        <div class="admin-section-header">
+          <h2>公告管理</h2>
+          <button class="btn btn-primary" onclick="openAnnouncementModal()">+ 新建公告</button>
+        </div>
+        <div id="announcement-list" class="admin-list"></div>
+      </section>
+
+<section class="admin-section" id="section-users" style="display:none;">
         <div class="admin-section-header">
           <h2>用户管理</h2>
           <button class="btn btn-primary btn-sm" id="btn-add-user">+ 添加用户</button>

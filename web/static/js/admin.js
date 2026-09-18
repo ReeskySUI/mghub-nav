@@ -133,6 +133,7 @@
       document.querySelectorAll('.admin-section').forEach(function (sec) {
         sec.style.display = sec.id === target ? 'block' : 'none';
       });
+      if (target === 'section-announcements' && typeof loadAnnouncements === 'function') loadAnnouncements();
     });
   });
 
@@ -1097,3 +1098,109 @@
   if (document.getElementById('link-list')) { loadLinks(); }
   if (document.getElementById('upload-list')) { loadUploads(); }
 })();
+
+
+function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':String(s); return d.innerHTML; }
+
+// ==================== 公告管理 ====================
+let announcements = [];
+
+async function loadAnnouncements() {
+  try {
+    const res = await fetch('/api/announcements?all=1');
+    const json = await res.json();
+    announcements = json.data || [];
+    renderAnnouncements();
+  } catch(e) { console.error('loadAnnouncements', e); }
+}
+
+function renderAnnouncements() {
+  const el = document.getElementById('announcement-list');
+  if (!el) return;
+  if (announcements.length === 0) {
+    el.innerHTML = '<p style="color:var(--text-muted);padding:12px;">暂无公告</p>';
+    return;
+  }
+  el.innerHTML = '<table class="admin-table"><thead><tr><th>ID</th><th>标题</th><th>级别</th><th>启用</th><th>显示位置</th><th>时间窗</th><th>操作</th></tr></thead><tbody>' +
+    announcements.map(function(a) {
+      const levelLabel = {info:'普通', warn:'警告', error:'紧急'}[a.level] || a.level;
+      const enabled = a.enabled ? '<span style="color:green;">是</span>' : '<span style="color:red;">否</span>';
+      const where = a.show_on_home ? '首页+导航页' : '导航页';
+      const win = (a.starts_at || '—') + ' ~ ' + (a.ends_at || '—');
+      return '<tr>' +
+        '<td>' + a.id + '</td>' +
+        '<td>' + esc(a.title) + '</td>' +
+        '<td>' + levelLabel + '</td>' +
+        '<td>' + enabled + '</td>' +
+        '<td>' + where + '</td>' +
+        '<td style="font-size:12px;">' + win + '</td>' +
+        '<td>' +
+          '<button class="btn btn-sm" onclick="openAnnouncementModal(' + a.id + ')">编辑</button> ' +
+          '<button class="btn btn-sm btn-danger" onclick="deleteAnnouncement(' + a.id + ')">删除</button>' +
+        '</td>' +
+      '</tr>';
+    }).join('') + '</tbody></table>';
+}
+
+function openAnnouncementModal(id) {
+  const a = id ? announcements.find(function(x){return x.id===id;}) : null;
+  const html = '<div class="modal-overlay" onclick="if(event.target===this)closeModal()">' +
+    '<div class="modal-box" style="max-width:560px;">' +
+      '<div class="modal-header"><h3>' + (a ? '编辑公告' : '新建公告') + '</h3><button class="modal-close" onclick="closeModal()">✕</button></div>' +
+      '<div class="modal-body">' +
+        '<div class="form-group"><label class="form-label">标题</label><input id="ann-title" class="form-input" value="' + esc(a?a.title:'') + '" placeholder="公告标题"></div>' +
+        '<div class="form-group"><label class="form-label">内容</label><textarea id="ann-content" class="form-input" rows="3" placeholder="公告内容（纯文本）">' + esc(a?a.content:'') + '</textarea></div>' +
+        '<div class="form-group"><label class="form-label">级别</label>' +
+          '<select id="ann-level" class="form-select">' +
+            '<option value="info"' + (a&&a.level==='info'?' selected':'') + '>普通（蓝）</option>' +
+            '<option value="warn"' + (a&&a.level==='warn'?' selected':'') + '>警告（橙）</option>' +
+            '<option value="error"' + (a&&a.level==='error'?' selected':'') + '>紧急（红）</option>' +
+          '</select>' +
+        '</div>' +
+        '<div class="form-row">' +
+          '<label><input type="checkbox" id="ann-enabled"' + (a?a.enabled:true?' checked':'') + '> 启用</label>' +
+          '<label style="margin-left:16px;"><input type="checkbox" id="ann-dismissible"' + (a?a.dismissible:true?' checked':'') + '> 允许成员关闭</label>' +
+          '<label style="margin-left:16px;"><input type="checkbox" id="ann-showhome"' + (a&&a.show_on_home?' checked':'') + '> 首页也显示</label>' +
+        '</div>' +
+        '<div class="form-row">' +
+          '<div class="form-group" style="flex:1;"><label class="form-label">上线时间（可空）</label><input id="ann-starts" class="form-input" value="' + esc(a?a.starts_at:'') + '" placeholder="YYYY-MM-DD HH:MM:SS"></div>' +
+          '<div class="form-group" style="flex:1;"><label class="form-label">下线时间（可空）</label><input id="ann-ends" class="form-input" value="' + esc(a?a.ends_at:'') + '" placeholder="YYYY-MM-DD HH:MM:SS"></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="modal-footer">' +
+        '<button class="btn" onclick="closeModal()">取消</button>' +
+        '<button class="btn btn-primary" onclick="saveAnnouncement(' + (id||0) + ')">保存</button>' +
+      '</div>' +
+    '</div></div>';
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  div.id = 'ann-modal-wrap';
+  document.body.appendChild(div);
+}
+
+async function saveAnnouncement(id) {
+  const data = {
+    title: document.getElementById('ann-title').value.trim(),
+    content: document.getElementById('ann-content').value.trim(),
+    level: document.getElementById('ann-level').value,
+    enabled: document.getElementById('ann-enabled').checked,
+    dismissible: document.getElementById('ann-dismissible').checked,
+    show_on_home: document.getElementById('ann-showhome').checked,
+    starts_at: document.getElementById('ann-starts').value.trim(),
+    ends_at: document.getElementById('ann-ends').value.trim()
+  };
+  if (!data.title) { alert('标题不能为空'); return; }
+  const url = id ? '/api/announcements/' + id : '/api/announcements';
+  const method = id ? 'PUT' : 'POST';
+  const res = await fetch(url, {method: method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+  const json = await res.json();
+  if (json.error) { alert(json.error); return; }
+  closeModal();
+  loadAnnouncements();
+}
+
+async function deleteAnnouncement(id) {
+  if (!confirm('确定删除这条公告？')) return;
+  await fetch('/api/announcements/' + id, {method:'DELETE'});
+  loadAnnouncements();
+}

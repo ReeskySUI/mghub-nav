@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"mghub-portal/internal/middleware"
+	"mghub-portal/internal/model"
 	"mghub-portal/internal/store"
 )
 
@@ -63,6 +64,7 @@ func (h *HomeHandler) Index(c *gin.Context) {
 		"custom_accent":   settings.CustomAccent,
 		"custom_bg":       settings.CustomBg,
 		"custom_theme_enabled": settings.CustomThemeEnabled,
+		"announcement": activeHomeAnnouncement(h.store),
 		"hero_title":    settings.HomeHeroTitle,
 		"hero_sub":      settings.HomeHeroSub,
 		"vision":        visionTexts,
@@ -73,4 +75,13 @@ func (h *HomeHandler) Index(c *gin.Context) {
 		"logged_in":     isLoggedIn,
 		"current_user":  session,
 	})
+}
+
+
+func activeHomeAnnouncement(store *store.Store) *model.Announcement {
+	a, err := store.GetActiveAnnouncement()
+	if err != nil || a == nil || !a.ShowOnHome {
+		return nil
+	}
+	return a
 }

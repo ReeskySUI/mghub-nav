@@ -85,6 +85,20 @@ type SiteSetting struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// Announcement 公告
+type Announcement struct {
+	ID          int64  `json:"id"`
+	Title       string `json:"title"`
+	Content     string `json:"content"`
+	Level       string `json:"level"` // info / warn / error
+	Enabled     bool   `json:"enabled"`
+	StartsAt    string `json:"starts_at"` // 可空
+	EndsAt      string `json:"ends_at"`   // 可空
+	Dismissible bool   `json:"dismissible"`
+	ShowOnHome  bool   `json:"show_on_home"`
+	CreatedAt   string `json:"created_at"`
+}
+
 // SiteSettings 站点设置集合（方便模板使用）
 type SiteSettings struct {
 	SiteTitle     string `json:"site_title"`

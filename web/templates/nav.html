@@ -9,8 +9,8 @@
   <script>
     (function(){try{var t=localStorage.getItem('portal_theme')||'auto';var e=t==='auto'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;document.documentElement.setAttribute('data-theme',e);}catch(_){}})();
   </script>
-{{if .custom_theme_enabled}}{{if .custom_primary}}<style>:root:not([data-theme="dark"]){--primary: {{.custom_primary}}; --primary-dark: {{.custom_primary}};}</style>{{end}}{{end}}
-{{if .custom_theme_enabled}}{{if .custom_accent}}<style>:root:not([data-theme="dark"]){--accent: {{.custom_accent}};}</style>{{end}}{{end}}
+{{if .custom_theme_enabled}}{{if .custom_primary}}<style>:root{--primary: {{.custom_primary}}; --primary-dark: {{.custom_primary}};}</style>{{end}}{{end}}
+{{if .custom_theme_enabled}}{{if .custom_accent}}<style>:root{--accent: {{.custom_accent}};}</style>{{end}}{{end}}
 {{if .custom_theme_enabled}}{{if .custom_bg}}<style>body{background-image:url('{{.custom_bg}}');background-size:cover;background-attachment:fixed;}</style>{{end}}{{end}}
 </head>
 <body>
@@ -64,6 +64,17 @@
       </div>
     </header>
 
+{{if .announcement}}
+<div class="announcement-banner ann-level-{{.announcement.Level}}" data-ann-id="{{.announcement.ID}}" id="announcement-banner">
+  <div class="ann-inner">
+    <span class="ann-icon">●</span>
+    <span class="ann-text"><strong>{{.announcement.Title}}</strong>{{if .announcement.Content}} — {{.announcement.Content}}{{end}}</span>
+  </div>
+  {{if .announcement.Dismissible}}<button class="ann-close" onclick="dismissAnnouncement({{.announcement.ID}})">✕</button>{{end}}
+</div>
+{{end}}
+
+
     <div class="nav-body">
       <aside class="nav-sidebar" id="category-sidebar" aria-label="按分类筛选"></aside>
       <main class="nav-content" id="nav-container"></main>
@@ -104,5 +115,19 @@
       new MutationObserver(updateLogo).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
     })();
   </script>
+
+<script>
+function dismissAnnouncement(id) {
+  try { localStorage.setItem('ann_dismissed_' + id, '1'); } catch(e) {}
+  var b = document.getElementById('announcement-banner');
+  if (b) b.style.display = 'none';
+}
+(function(){
+  var b = document.getElementById('announcement-banner');
+  if (!b) return;
+  var id = b.getAttribute('data-ann-id');
+  try { if (localStorage.getItem('ann_dismissed_' + id) === '1') b.style.display = 'none'; } catch(e) {}
+})();
+</script>
 </body>
 </html>

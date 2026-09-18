@@ -163,6 +163,12 @@ func main() {
 		apiGroup.POST("/links", middleware.SuperAdminRequired(), apiHandler.CreateLink)
 		apiGroup.PUT("/links/:id", middleware.SuperAdminRequired(), apiHandler.UpdateLink)
 		apiGroup.DELETE("/links/:id", middleware.SuperAdminRequired(), apiHandler.DeleteLink)
+
+		// 公告
+		apiGroup.GET("/announcements", apiHandler.ListAnnouncements)
+		apiGroup.POST("/announcements", middleware.SuperAdminRequired(), apiHandler.CreateAnnouncement)
+		apiGroup.PUT("/announcements/:id", middleware.SuperAdminRequired(), apiHandler.UpdateAnnouncement)
+		apiGroup.DELETE("/announcements/:id", middleware.SuperAdminRequired(), apiHandler.DeleteAnnouncement)
 	}
 
 	r.NoRoute(func(c *gin.Context) {
