@@ -279,7 +279,7 @@ sudo systemctl reload nginx
 | 角色 | 导航页 | 管理后台 | 用户管理 | 说明 |
 |------|--------|----------|----------|------|
 | 超级管理员 | ✅ | ✅ | ✅ | 唯一，可管理所有用户和角色，永不禁用 |
-| 管理员 | ✅ | ✅ | ❌ | 可管理分类、导航项、站点设置 |
+| 管理员 | ✅ | ✅ | ❌ | 可管理分类、导航项、图片管理；不可管理站点设置 |
 | 普通成员 | ✅ | ❌ | ❌ | 只能访问导航页，按权限查看导航项 |
 
 ### 导航项可见范围
@@ -294,6 +294,14 @@ sudo systemctl reload nginx
 超级管理员可以为每个用户指定可见的导航分类：
 - 不勾选任何分类：用户可见所有分类
 - 勾选特定分类：用户只能看到勾选分类下的导航项
+
+### 实验性外观（仅超管）
+
+管理后台「站点设置 → 实验性外观」区可自定义主题色与页面背景：
+- **启用自定义外观**（Switch 开关）：关闭时使用内置配色，开启后应用以下自定义
+- **主色 / 强调色 HEX**：自定义品牌色（留空用默认 #0175CB / #FE8835）
+- **页面背景图 URL**：可选，设置后作为页面背景
+- 深色模式仍使用内置深色配色，自定义色仅作用于浅色模式
 
 ## 项目结构
 
@@ -362,21 +370,21 @@ mghub-nav/
 - `GET /api/users/:id/categories` - 获取用户可见分类
 - `PUT /api/users/:id/categories` - 更新用户可见分类
 
-### 站点设置
+### 站点设置（仅超管）
 - `GET /api/settings` - 获取站点设置
-- `POST /api/settings` - 更新站点设置（管理员）
+- `POST /api/settings` - 更新站点设置
 
-### 愿景要点
+### 愿景要点（仅超管可写）
 - `GET /api/visions` - 获取愿景列表
-- `POST /api/visions` - 创建愿景（管理员）
-- `PUT /api/visions/:id` - 更新愿景（管理员）
-- `DELETE /api/visions/:id` - 删除愿景（管理员）
+- `POST /api/visions` - 创建愿景
+- `PUT /api/visions/:id` - 更新愿景
+- `DELETE /api/visions/:id` - 删除愿景
 
-### 站点链接
+### 站点链接（仅超管可写）
 - `GET /api/links` - 获取链接列表
-- `POST /api/links` - 创建链接（管理员）
-- `PUT /api/links/:id` - 更新链接（管理员）
-- `DELETE /api/links/:id` - 删除链接（管理员）
+- `POST /api/links` - 创建链接
+- `PUT /api/links/:id` - 更新链接
+- `DELETE /api/links/:id` - 删除链接
 
 ### 其他
 - `POST /api/change-password` - 修改当前用户密码
