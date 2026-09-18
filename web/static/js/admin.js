@@ -804,6 +804,7 @@
       custom_primary: (document.getElementById('set-custom-primary') || {value:''}).value.trim(),
       custom_accent: (document.getElementById('set-custom-accent') || {value:''}).value.trim(),
       custom_bg: (document.getElementById('set-custom-bg') || {value:''}).value.trim(),
+      custom_bg_color: (document.getElementById('set-custom-bg-color') || {value:''}).value.trim(),
       custom_theme_enabled: (document.getElementById('set-custom-theme-enabled') && document.getElementById('set-custom-theme-enabled').checked) ? '1' : '',
       home_hero_title: document.getElementById('set-home-hero-title').value.trim(),
       home_hero_sub: document.getElementById('set-home-hero-sub').value.trim(),
@@ -1208,10 +1209,12 @@ async function deleteAnnouncement(id) {
 }
 
 
-window.applyThemePreset = function(primary, accent) {
+window.applyThemePreset = function(primary, accent, bgColor) {
   var p = document.getElementById('set-custom-primary');
   var a = document.getElementById('set-custom-accent');
+  var b = document.getElementById('set-custom-bg-color');
   if (p) p.value = primary;
   if (a) a.value = accent;
+  if (b && bgColor) b.value = bgColor;
   if (typeof showToast === 'function') showToast('已应用预设，请点保存');
 };
