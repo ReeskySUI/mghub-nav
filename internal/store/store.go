@@ -497,6 +497,7 @@ func (s *Store) GetAllSettings() (*model.SiteSettings, error) {
 		CustomPrimary: m["custom_primary"],
 		CustomAccent:  m["custom_accent"],
 		CustomBg:      m["custom_bg"],
+		CustomThemeEnabled: m["custom_theme_enabled"],
 		DefaultTheme:  m["default_theme"],
 	}, rows.Err()
 }

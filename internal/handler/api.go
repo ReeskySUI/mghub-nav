@@ -692,6 +692,7 @@ func (h *APIHandler) UpdateSettings(c *gin.Context) {
 		"home_badge": true, "home_hero_title": true, "home_hero_sub": true,
 		"footer_text": true, "wiki_url": true, "nav_url": true, "home_url": true,
 		"home_badge_icon": true, "custom_primary": true, "custom_accent": true, "custom_bg": true,
+		"custom_theme_enabled": true,
 		"default_theme": true,
 	}
 

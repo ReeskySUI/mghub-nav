@@ -803,6 +803,7 @@
       custom_primary: (document.getElementById('set-custom-primary') || {value:''}).value.trim(),
       custom_accent: (document.getElementById('set-custom-accent') || {value:''}).value.trim(),
       custom_bg: (document.getElementById('set-custom-bg') || {value:''}).value.trim(),
+      custom_theme_enabled: (document.getElementById('set-custom-theme-enabled') || {value:''}).value,
       home_hero_title: document.getElementById('set-home-hero-title').value.trim(),
       home_hero_sub: document.getElementById('set-home-hero-sub').value.trim(),
       logo_light: document.getElementById('set-logo-light').value.trim(),

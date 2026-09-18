@@ -103,6 +103,7 @@ type SiteSettings struct {
 	CustomPrimary string `json:"custom_primary"`
 	CustomAccent  string `json:"custom_accent"`
 	CustomBg      string `json:"custom_bg"`
+	CustomThemeEnabled string `json:"custom_theme_enabled"`
 	DefaultTheme  string `json:"default_theme"` // light / dark / auto
 }
 

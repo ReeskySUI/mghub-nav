@@ -19,9 +19,9 @@
     .logo-mark-img { width: 36px; height: 36px; border-radius: 8px; object-fit: contain; }
     .badge-icon-img { width: 20px; height: 20px; border-radius: 4px; object-fit: contain; }
   </style>
-  {{if .custom_primary}}<style>:root:not([data-theme="dark"]){--primary: {{.custom_primary}}; --primary-dark: {{.custom_primary}};}</style>{{end}}
-  {{if .custom_accent}}<style>:root:not([data-theme="dark"]){--accent: {{.custom_accent}};}</style>{{end}}
-  {{if .custom_bg}}<style>body{background-image:url('{{.custom_bg}}');background-size:cover;background-attachment:fixed;}</style>{{end}}
+  {{if .custom_theme_enabled}}{{if .custom_primary}}<style>:root:not([data-theme="dark"]){--primary: {{.custom_primary}}; --primary-dark: {{.custom_primary}};}</style>{{end}}{{end}}
+  {{if .custom_theme_enabled}}{{if .custom_accent}}<style>:root:not([data-theme="dark"]){--accent: {{.custom_accent}};}</style>{{end}}{{end}}
+  {{if .custom_theme_enabled}}{{if .custom_bg}}<style>body{background-image:url('{{.custom_bg}}');background-size:cover;background-attachment:fixed;}</style>{{end}}{{end}}
 </head>
 <body>
   <div class="home-wrapper">

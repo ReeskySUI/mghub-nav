@@ -62,6 +62,7 @@ func (h *HomeHandler) Index(c *gin.Context) {
 		"custom_primary":  settings.CustomPrimary,
 		"custom_accent":   settings.CustomAccent,
 		"custom_bg":       settings.CustomBg,
+		"custom_theme_enabled": settings.CustomThemeEnabled,
 		"hero_title":    settings.HomeHeroTitle,
 		"hero_sub":      settings.HomeHeroSub,
 		"vision":        visionTexts,
