@@ -1168,11 +1168,11 @@ function renderAnnouncements() {
 function openAnnouncementModal(id) {
   const a = id ? announcements.find(function(x){return x.id===id;}) : null;
   const html = '<div class="modal-overlay" onclick="if(event.target===this)window.closeModal()">' +
-    '<div class="modal" style="max-width:560px;">' +
+    '<div class="modal">' +
       '<div class="modal-header"><h3>' + (a ? '编辑公告' : '新建公告') + '</h3><button class="modal-close" onclick="window.closeModal()">✕</button></div>' +
-      '<div class="modal-body">' +
+      '<form id="ann-form">' +
         '<div class="form-group"><label class="form-label">标题</label><input id="ann-title" class="form-input" value="' + esc(a?a.title:'') + '" placeholder="公告标题"></div>' +
-        '<div class="form-group"><label class="form-label">内容</label><textarea id="ann-content" class="form-input" rows="3" placeholder="公告内容（纯文本）">' + esc(a?a.content:'') + '</textarea></div>' +
+        '<div class="form-group"><label class="form-label">内容</label><textarea id="ann-content" class="form-textarea" rows="3" placeholder="公告内容（纯文本）">' + esc(a?a.content:'') + '</textarea></div>' +
         '<div class="form-group"><label class="form-label">级别</label>' +
           '<select id="ann-level" class="form-select">' +
             '<option value="info"' + (a&&a.level==='info'?' selected':'') + '>普通（蓝）</option>' +
@@ -1180,20 +1180,20 @@ function openAnnouncementModal(id) {
             '<option value="error"' + (a&&a.level==='error'?' selected':'') + '>紧急（红）</option>' +
           '</select>' +
         '</div>' +
-        '<div class="form-row">' +
-          '<label><input type="checkbox" id="ann-enabled"' + (a?a.enabled:true?' checked':'') + '> 启用</label>' +
-          '<label style="margin-left:16px;"><input type="checkbox" id="ann-dismissible"' + (a?a.dismissible:true?' checked':'') + '> 允许成员关闭</label>' +
-          '<label style="margin-left:16px;"><input type="checkbox" id="ann-showhome"' + (a&&a.show_on_home?' checked':'') + '> 首页也显示</label>' +
+        '<div class="form-group">' +
+          '<label class="form-checkbox"><input type="checkbox" id="ann-enabled"' + (a?a.enabled:true?' checked':'') + '> <span>启用</span></label> ' +
+          '<label class="form-checkbox" style="margin-left:16px;"><input type="checkbox" id="ann-dismissible"' + (a?a.dismissible:true?' checked':'') + '> <span>允许成员关闭</span></label> ' +
+          '<label class="form-checkbox" style="margin-left:16px;"><input type="checkbox" id="ann-showhome"' + (a&&a.show_on_home?' checked':'') + '> <span>首页也显示</span></label>' +
         '</div>' +
         '<div class="form-row">' +
           '<div class="form-group" style="flex:1;"><label class="form-label">上线时间（可空）</label><input id="ann-starts" class="form-input" value="' + esc(a?a.starts_at:'') + '" placeholder="YYYY-MM-DD HH:MM:SS"></div>' +
           '<div class="form-group" style="flex:1;"><label class="form-label">下线时间（可空）</label><input id="ann-ends" class="form-input" value="' + esc(a?a.ends_at:'') + '" placeholder="YYYY-MM-DD HH:MM:SS"></div>' +
         '</div>' +
-      '</div>' +
-      '<div class="modal-footer">' +
-        '<button class="btn" onclick="window.closeModal()">取消</button>' +
-        '<button class="btn btn-primary" onclick="saveAnnouncement(' + (id||0) + ')">保存</button>' +
-      '</div>' +
+        '<div class="modal-footer">' +
+          '<button type="button" class="btn btn-ghost" onclick="window.closeModal()">取消</button>' +
+          '<button type="button" class="btn btn-primary" onclick="saveAnnouncement(' + (id||0) + ')">保存</button>' +
+        '</div>' +
+      '</form>' +
     '</div></div>';
   const div = document.createElement('div');
   div.innerHTML = html;
