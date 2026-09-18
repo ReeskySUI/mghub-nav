@@ -1181,6 +1181,8 @@ function openAnnouncementModal(id) {
   div.innerHTML = html;
   div.id = 'ann-modal-wrap';
   document.body.appendChild(div);
+  const ov = div.querySelector('.modal-overlay');
+  if (ov) ov.classList.add('show');
 }
 
 async function saveAnnouncement(id) {
