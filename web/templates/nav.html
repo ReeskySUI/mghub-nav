@@ -13,7 +13,8 @@
 {{if .custom_theme_enabled}}{{if .custom_accent}}<style>:root{--accent: {{.custom_accent}};}</style>{{end}}{{end}}
 {{if .custom_theme_enabled}}{{if .custom_bg_color}}<style>:root{--white: {{.custom_bg_color}};}</style>{{end}}{{if .custom_bg}}<style>
 body{background-image:url('{{.custom_bg}}') !important;background-size:cover;background-position:center;background-attachment:fixed;}
-.nav-card, .nav-header, .nav-search .search-box, .nav-piano-tabs, .nav-layout-toggle, .nav-theme-toggle, .nav-user, .announcement-banner{background-color: {{.custom_bg_color}} !important; opacity: {{if .custom_bg_opacity}}{{.custom_bg_opacity}}{{else}}0.9{{end}};}
+.nav-wrapper, .home-wrapper{background: transparent !important;}
+.nav-card, .nav-header, .nav-search .search-box, .nav-piano-tab, .announcement-banner{background-color: color-mix(in srgb, {{.custom_bg_color}} {{if .custom_bg_opacity}}{{.custom_bg_opacity}}{{else}}90{{end}}, transparent) !important; backdrop-filter: blur(8px);}
 </style>{{end}}{{end}}
 </head>
 <body>
