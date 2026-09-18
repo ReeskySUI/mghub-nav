@@ -119,6 +119,7 @@ type SiteSettings struct {
 	CustomBg      string `json:"custom_bg"`
 	CustomBgColor string `json:"custom_bg_color"`
 	CustomBgOpacity string `json:"custom_bg_opacity"`
+	CustomBgBlur   string `json:"custom_bg_blur"`
 	CustomThemeEnabled string `json:"custom_theme_enabled"`
 	DefaultTheme  string `json:"default_theme"` // light / dark / auto
 }
