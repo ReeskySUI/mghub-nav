@@ -12,9 +12,10 @@
 {{if .custom_theme_enabled}}{{if .custom_primary}}<style>:root{--primary: {{.custom_primary}}; --primary-dark: {{.custom_primary}};}</style>{{end}}{{end}}
 {{if .custom_theme_enabled}}{{if .custom_accent}}<style>:root{--accent: {{.custom_accent}};}</style>{{end}}{{end}}
 {{if .custom_theme_enabled}}{{if .custom_bg_color}}<style>:root{--white: {{.custom_bg_color}};}</style>{{end}}{{if .custom_bg}}<style>
-body{background-image:url('{{.custom_bg}}') !important;background-size:cover;background-position:center;background-attachment:fixed;}
+body{background: {{.custom_bg_color}} !important;}
+body::before{content:'';position:fixed;inset:0;background-image:url('{{.custom_bg}}');background-size:cover;background-position:center;{{if .custom_bg_blur}}filter: blur(20px) brightness(0.9);-webkit-filter: blur(20px) brightness(0.9);{{end}}}}
 .nav-wrapper, .home-wrapper{background: transparent !important;}
-.nav-card, .nav-header, .nav-search input, .nav-piano-tab, .announcement-banner{background-color: color-mix(in srgb, {{.custom_bg_color}} {{if .custom_bg_opacity}}{{.custom_bg_opacity}}{{else}}90{{end}}%, transparent) !important; {{if .custom_bg_blur}}backdrop-filter: blur(12px);-webkit-backdrop-filter: blur(12px);{{end}}}}
+.nav-card, .nav-header, .nav-search input, .nav-piano-tab, .announcement-banner{background-color: color-mix(in srgb, {{.custom_bg_color}} {{if .custom_bg_opacity}}{{.custom_bg_opacity}}{{else}}90{{end}}%, transparent) !important;}
 .nav-search input{border-color: transparent !important;}
 </style>{{end}}{{end}}
 </head>
