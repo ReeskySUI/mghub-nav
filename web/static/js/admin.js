@@ -56,12 +56,15 @@
     }
   }
 
-  function closeModal(id) {
-    const modal = document.getElementById(id);
-    if (modal) {
-      modal.classList.remove('show');
+  window.closeModal = function (id) {
+    if (id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.remove('show');
+      return;
     }
-  }
+    document.querySelectorAll('.modal-overlay.show').forEach(function(m){ m.classList.remove('show'); });
+  };
+  function closeModal(id) { window.closeModal(id); }
 
   // 点击遮罩关闭模态框
   document.querySelectorAll('.modal-overlay').forEach(function (overlay) {
@@ -1164,9 +1167,9 @@ function renderAnnouncements() {
 
 function openAnnouncementModal(id) {
   const a = id ? announcements.find(function(x){return x.id===id;}) : null;
-  const html = '<div class="modal-overlay" onclick="if(event.target===this)closeModal()">' +
+  const html = '<div class="modal-overlay" onclick="if(event.target===this)window.closeModal()">' +
     '<div class="modal-box" style="max-width:560px;">' +
-      '<div class="modal-header"><h3>' + (a ? '编辑公告' : '新建公告') + '</h3><button class="modal-close" onclick="closeModal()">✕</button></div>' +
+      '<div class="modal-header"><h3>' + (a ? '编辑公告' : '新建公告') + '</h3><button class="modal-close" onclick="window.closeModal()">✕</button></div>' +
       '<div class="modal-body">' +
         '<div class="form-group"><label class="form-label">标题</label><input id="ann-title" class="form-input" value="' + esc(a?a.title:'') + '" placeholder="公告标题"></div>' +
         '<div class="form-group"><label class="form-label">内容</label><textarea id="ann-content" class="form-input" rows="3" placeholder="公告内容（纯文本）">' + esc(a?a.content:'') + '</textarea></div>' +
@@ -1188,7 +1191,7 @@ function openAnnouncementModal(id) {
         '</div>' +
       '</div>' +
       '<div class="modal-footer">' +
-        '<button class="btn" onclick="closeModal()">取消</button>' +
+        '<button class="btn" onclick="window.closeModal()">取消</button>' +
         '<button class="btn btn-primary" onclick="saveAnnouncement(' + (id||0) + ')">保存</button>' +
       '</div>' +
     '</div></div>';

@@ -266,9 +266,9 @@
         <div class="admin-section-header">
           <h2>图片管理</h2>
           <div style="display:flex;gap:8px;">
-            <button class="btn btn-primary btn-sm" id="btn-upload-img">↑ 上传图片</button>
+            <button class="btn btn-primary btn-sm" onclick="document.getElementById('file-upload-img').click()">↑ 上传图片</button>
             <button class="btn btn-outline btn-sm" id="btn-refresh-uploads">↻ 刷新</button>
-            <input type="file" id="file-upload-img" accept="image/*" style="display:none;">
+            <input type="file" id="file-upload-img" accept="image/*" style="display:none;" onchange="if(this.files[0]){window.uploadImageFile(this.files[0]);this.value='';}">
           </div>
         </div>
         <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:16px;">管理上传的图标图片（Logo、Favicon、导航项图标）。相同图片上传时自动去重，只保存一份；被引用的图片需先解除引用才能删除。</p>
