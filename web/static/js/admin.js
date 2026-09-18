@@ -1168,7 +1168,7 @@ function renderAnnouncements() {
 function openAnnouncementModal(id) {
   const a = id ? announcements.find(function(x){return x.id===id;}) : null;
   const html = '<div class="modal-overlay" onclick="if(event.target===this)window.closeModal()">' +
-    '<div class="modal-box" style="max-width:560px;">' +
+    '<div class="modal" style="max-width:560px;">' +
       '<div class="modal-header"><h3>' + (a ? '编辑公告' : '新建公告') + '</h3><button class="modal-close" onclick="window.closeModal()">✕</button></div>' +
       '<div class="modal-body">' +
         '<div class="form-group"><label class="form-label">标题</label><input id="ann-title" class="form-input" value="' + esc(a?a.title:'') + '" placeholder="公告标题"></div>' +
