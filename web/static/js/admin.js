@@ -1068,6 +1068,21 @@
     }
   }
 
+  window.uploadImageFile = async function (file) {
+    if (!file) return;
+    const form = new FormData();
+    form.append('file', file);
+    try {
+      const res = await fetch('/api/upload', {method: 'POST', body: form, credentials: 'include'});
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || '上传失败');
+      showToast('上传成功: ' + (data.url || file.name));
+      loadUploads();
+    } catch (err) {
+      showToast('上传失败: ' + err.message, 'error');
+    }
+  };
+
   window.copyImageUrl = async function (url) {
     try {
       await navigator.clipboard.writeText(url);
