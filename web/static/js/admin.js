@@ -63,6 +63,9 @@
       return;
     }
     document.querySelectorAll('.modal-overlay.show').forEach(function(m){ m.classList.remove('show'); });
+    // 公告弹窗关闭后移除 DOM
+    const aw = document.getElementById('ann-modal-wrap');
+    if (aw) aw.remove();
   };
   function closeModal(id) { window.closeModal(id); }
 
@@ -1195,6 +1198,9 @@ function openAnnouncementModal(id) {
         '</div>' +
       '</form>' +
     '</div></div>';
+  // 移除旧弹窗，避免重复 id 冲突
+  const old = document.getElementById('ann-modal-wrap');
+  if (old) old.remove();
   const div = document.createElement('div');
   div.innerHTML = html;
   div.id = 'ann-modal-wrap';
