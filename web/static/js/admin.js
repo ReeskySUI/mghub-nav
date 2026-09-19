@@ -1181,9 +1181,9 @@ function openAnnouncementModal(id) {
           '</select>' +
         '</div>' +
         '<div class="form-group" style="display:flex; gap:20px; flex-wrap:wrap; align-items:center;">' +
-          '<label class="form-checkbox" style="margin:0;"><input type="checkbox" id="ann-enabled"' + (a?a.enabled:true?' checked':'') + '> <span>启用</span></label>' +
-          '<label class="form-checkbox" style="margin:0;"><input type="checkbox" id="ann-dismissible"' + (a?a.dismissible:true?' checked':'') + '> <span>允许成员关闭</span></label>' +
-          '<label class="form-checkbox" style="margin:0;"><input type="checkbox" id="ann-showhome"' + (a&&a.show_on_home?' checked':'') + '> <span>首页也显示</span></label>' +
+          '<label class="form-checkbox" style="margin:0;"><input type="checkbox" id="ann-enabled"' + ((a && a.enabled) ? ' checked' : (a ? '' : ' checked')) + '> <span>启用</span></label>' +
+          '<label class="form-checkbox" style="margin:0;"><input type="checkbox" id="ann-dismissible"' + ((a && a.dismissible) ? ' checked' : (a ? '' : ' checked')) + '> <span>允许成员关闭</span></label>' +
+          '<label class="form-checkbox" style="margin:0;"><input type="checkbox" id="ann-showhome"' + ((a && a.show_on_home) ? ' checked' : '') + '> <span>首页也显示</span></label>' +
         '</div>' +
         '<div class="form-row">' +
           '<div class="form-group" style="flex:1;"><label class="form-label">上线时间（可空）</label><input id="ann-starts" class="form-input" value="' + esc(a?a.starts_at:'') + '" placeholder="YYYY-MM-DD HH:MM:SS"></div>' +
