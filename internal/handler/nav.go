@@ -38,12 +38,9 @@ func (h *NavHandler) Index(c *gin.Context) {
 
 	// 从站点设置读取 Wiki / 首页地址
 	wikiURL := settings.WikiURL
-	homeURL := settings.HomeURL
+	homeURL := resolveHomeURL(settings.HomeURL, c.Request.Host)
 	if wikiURL == "" {
 		wikiURL = "#"
-	}
-	if homeURL == "" {
-		homeURL = "/"
 	}
 
 	categories, err := h.store.ListCategories()

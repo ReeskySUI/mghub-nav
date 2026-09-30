@@ -35,7 +35,7 @@ func (h *AuthHandler) LoginPage(c *gin.Context) {
 		"logo_light":    settings.LogoLight,
 		"logo_dark":     settings.LogoDark,
 		"favicon":       settings.Favicon,
-		"home_url":      "/",
+		"home_url":      resolveHomeURL(settings.HomeURL, c.Request.Host),
 		"default_theme": settings.DefaultTheme,
 		"error":         c.Query("error"),
 	})
