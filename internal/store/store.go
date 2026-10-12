@@ -506,6 +506,7 @@ func (s *Store) GetAllSettings() (*model.SiteSettings, error) {
 		FooterText:    m["footer_text"],
 		WikiURL:       m["wiki_url"],
 		HomeURL:       m["home_url"],
+		NavURL:        m["nav_url"],
 		HomeBadgeIcon: m["home_badge_icon"],
 		CustomPrimary: m["custom_primary"],
 		CustomAccent:  m["custom_accent"],

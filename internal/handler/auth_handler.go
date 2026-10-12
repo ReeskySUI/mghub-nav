@@ -25,7 +25,7 @@ func NewAuthHandler(s *store.Store, mgr *auth.Manager) *AuthHandler {
 func (h *AuthHandler) LoginPage(c *gin.Context) {
 	session := middleware.GetCurrentUser(c)
 	if session != nil {
-		c.Redirect(http.StatusFound, "/")
+		c.Redirect(http.StatusFound, h.postLoginURL(c))
 		return
 	}
 	settings, _ := h.store.GetAllSettings()
@@ -66,7 +66,16 @@ func (h *AuthHandler) LoginSubmit(c *gin.Context) {
 		false, // 本地测试时不强制 secure
 		true,
 	)
-	c.Redirect(http.StatusFound, "/")
+	c.Redirect(http.StatusFound, h.postLoginURL(c))
+}
+
+// postLoginURL 登录成功后的落地地址：home 域跳到导航页，nav 域留根路径
+func (h *AuthHandler) postLoginURL(c *gin.Context) string {
+	if middleware.GetCurrentSite(c) == "home" {
+		settings, _ := h.store.GetAllSettings()
+		return resolveNavURL(settings.NavURL, c.Request.Host)
+	}
+	return "/"
 }
 
 // Logout 登出
