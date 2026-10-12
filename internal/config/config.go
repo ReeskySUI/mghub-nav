@@ -46,7 +46,16 @@ type SiteConfig struct {
 	Vision   []string `yaml:"vision"`
 	WikiURL     string   `yaml:"wiki_url"`
 	NavURL      string   `yaml:"nav_url"`
-	HomeEnabled bool     `yaml:"home_enabled"`
+	// HomeEnabled 为指针：配置缺失时默认开启首页；显式写 false 才关闭
+	HomeEnabled *bool    `yaml:"home_enabled"`
+}
+
+// IsHomeEnabled 首页是否开启（未配置时默认开启）
+func (s *SiteConfig) IsHomeEnabled() bool {
+	if s.HomeEnabled == nil {
+		return true
+	}
+	return *s.HomeEnabled
 }
 
 // Load 从文件加载配置

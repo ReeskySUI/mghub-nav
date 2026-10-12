@@ -90,7 +90,7 @@ func main() {
 	r.GET("/", func(c *gin.Context) {
 		site := middleware.GetCurrentSite(c)
 		if site == "home" {
-			if !cfg.Site.HomeEnabled {
+			if !cfg.Site.IsHomeEnabled() {
 				c.Redirect(http.StatusFound, "https://"+cfg.Server.NavHost)
 				return
 			}
