@@ -1,6 +1,9 @@
 package handler
 
-import "strings"
+import (
+	"net"
+	"strings"
+)
 
 // resolveHomeURL 解析首页地址。
 // 优先使用后台配置的有效 homeURL；若未配置或仍是 example.com 占位值，
@@ -45,4 +48,22 @@ func resolveNavURL(configured, requestHost string) string {
 		return configured
 	}
 	return "/"
+}
+
+
+// cookieDomain 推导 session cookie 的 domain，使首页域与导航页域共享登录态。
+// nav.mghub.top -> mghub.top；mghub.top -> mghub.top；
+// localhost / 127.0.0.1 等本地地址返回空串（IP 无法设置父域 cookie）。
+func cookieDomain(requestHost string) string {
+	host := requestHost
+	if idx := strings.Index(host, ":"); idx != -1 {
+		host = host[:idx]
+	}
+	if host == "" || host == "localhost" || net.ParseIP(host) != nil {
+		return ""
+	}
+	if strings.HasPrefix(host, "nav.") {
+		return host[4:]
+	}
+	return host
 }

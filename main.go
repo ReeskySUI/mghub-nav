@@ -94,6 +94,12 @@ func main() {
 				c.Redirect(http.StatusFound, "https://"+cfg.Server.NavHost)
 				return
 			}
+			// 解析共享 cookie 中的登录态，供首页显示"进入导航"
+			if token, err := c.Cookie(middleware.SessionCookie); err == nil && token != "" {
+				if sess := authMgr.GetSession(token); sess != nil {
+					c.Set(middleware.CtxUserKey, sess)
+				}
+			}
 			homeHandler.Index(c)
 			return
 		}

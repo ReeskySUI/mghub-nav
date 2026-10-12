@@ -62,7 +62,7 @@ func (h *AuthHandler) LoginSubmit(c *gin.Context) {
 		token,
 		3600*24*7,
 		"/",
-		"",
+		cookieDomain(c.Request.Host),
 		false, // 本地测试时不强制 secure
 		true,
 	)
@@ -84,6 +84,6 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	if err == nil && token != "" {
 		h.authMgr.Logout(token)
 	}
-	c.SetCookie(middleware.SessionCookie, "", -1, "/", "", false, true)
+	c.SetCookie(middleware.SessionCookie, "", -1, "/", cookieDomain(c.Request.Host), false, true)
 	c.Redirect(http.StatusFound, "/login")
 }
