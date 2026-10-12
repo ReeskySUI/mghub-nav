@@ -95,20 +95,13 @@ func main() {
 				return
 			}
 			// 解析共享 cookie 中的登录态，供首页显示"进入导航"
-			if token, err := c.Cookie(middleware.SessionCookie); err == nil && token != "" {
-				if sess := authMgr.GetSession(token); sess != nil {
-					c.Set(middleware.CtxUserKey, sess)
-				}
+			if sess := middleware.ResolveSession(c, authMgr); sess != nil {
+				c.Set(middleware.CtxUserKey, sess)
 			}
 			homeHandler.Index(c)
 			return
 		}
-		token, _ := c.Cookie(middleware.SessionCookie)
-		if token == "" {
-			c.Redirect(http.StatusFound, "/login")
-			return
-		}
-		session := authMgr.GetSession(token)
+		session := middleware.ResolveSession(c, authMgr)
 		if session == nil {
 			c.Redirect(http.StatusFound, "/login")
 			return

@@ -57,6 +57,10 @@ func (h *AuthHandler) LoginSubmit(c *gin.Context) {
 		return
 	}
 
+	// 先清除旧版本可能残留的 host-only Cookie（Domain 为空时写入），
+	// 避免同名 Cookie 并存导致请求带回已失效的旧 token
+	c.SetCookie(middleware.SessionCookie, "", -1, "/", "", false, true)
+	// 写入首页/导航页共享的跨子域 Cookie
 	c.SetCookie(
 		middleware.SessionCookie,
 		token,
@@ -80,10 +84,14 @@ func (h *AuthHandler) postLoginURL(c *gin.Context) string {
 
 // Logout 登出
 func (h *AuthHandler) Logout(c *gin.Context) {
-	token, err := c.Cookie(middleware.SessionCookie)
-	if err == nil && token != "" {
-		h.authMgr.Logout(token)
+	// 注销请求中携带的所有同名会话
+	for _, ck := range c.Request.Cookies() {
+		if ck.Name == middleware.SessionCookie && ck.Value != "" {
+			h.authMgr.Logout(ck.Value)
+		}
 	}
+	// 同时清理 host-only 与跨子域两种 Cookie
+	c.SetCookie(middleware.SessionCookie, "", -1, "/", "", false, true)
 	c.SetCookie(middleware.SessionCookie, "", -1, "/", cookieDomain(c.Request.Host), false, true)
 	c.Redirect(http.StatusFound, "/login")
 }

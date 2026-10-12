@@ -16,22 +16,31 @@ const (
 	CtxSiteKey    = "current_site"
 )
 
+// ResolveSession 从请求携带的所有同名 Cookie（及 Bearer 头）中返回第一个
+// 仍然有效的会话。浏览器可能同时持有旧版本的 host-only Cookie 与新版本的
+// 跨子域 Cookie（同名），只取第一个会拿到已失效的旧值而误判未登录，因此逐个校验。
+func ResolveSession(c *gin.Context, authMgr *auth.Manager) *model.Session {
+	if authHeader := c.GetHeader("Authorization"); strings.HasPrefix(authHeader, "Bearer ") {
+		if t := strings.TrimPrefix(authHeader, "Bearer "); t != "" {
+			if sess := authMgr.GetSession(t); sess != nil {
+				return sess
+			}
+		}
+	}
+	for _, ck := range c.Request.Cookies() {
+		if ck.Name == SessionCookie && ck.Value != "" {
+			if sess := authMgr.GetSession(ck.Value); sess != nil {
+				return sess
+			}
+		}
+	}
+	return nil
+}
+
 // AuthRequired 登录认证中间件
 func AuthRequired(authMgr *auth.Manager) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token, err := c.Cookie(SessionCookie)
-		if err != nil || token == "" {
-			// 检查 Authorization header（API 调用）
-			authHeader := c.GetHeader("Authorization")
-			if strings.HasPrefix(authHeader, "Bearer ") {
-				token = strings.TrimPrefix(authHeader, "Bearer ")
-			}
-		}
-		if token == "" {
-			redirectLogin(c)
-			return
-		}
-		session := authMgr.GetSession(token)
+		session := ResolveSession(c, authMgr)
 		if session == nil {
 			redirectLogin(c)
 			return
